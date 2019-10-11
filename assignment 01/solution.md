@@ -46,8 +46,8 @@ mpiexec -n 8 /bin/hostname
 1. `-help` qsub help screen
 2. `-q` queue: submit job to specefic queue
 3. `-pe` parallel environment: set up parallel environment
-4. TODO
-5. TODO
+4. `-o` to specify the output file
+5. `-cwd` to execute job in current working directory (defaults to `$HOME`)
 
 ### How to run a MPI program in parallel
 
