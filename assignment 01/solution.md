@@ -1,6 +1,6 @@
 # Assignment 1
 
-from Andreas Peintner, Josef Gugglberber and Lukas Döttlinger
+*by Andreas Peintner, Josef Gugglberger and Lukas Dötlinger*
 
 ## Exercise 1
 
