@@ -55,4 +55,24 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 
 ## Exercise 2
 
-TODO
+### Measured data
+
+TODO: table with results
+
+### Observed effects
+
+When increasing the number of messages in the test, the latency also increases on a linear basis, while the bandwidth decreases. 
+
+Although this effect is to be expected, we can see that the results for both bandwidth and latency don't really change until we hit an amount of 100 messages or so.
+
+### The modified experiment
+
+To run the two processes (MPI ranks) on different cores of the same socket, we use
+```shell
+qsub -pe openmpi-2perhost 2 script.sh
+```
+
+To run the two processes (MPI ranks) on different nodes, we use
+```shell
+qsub -pe openmpi-1perhost 2 script.sh
+```
