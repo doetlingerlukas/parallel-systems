@@ -46,8 +46,10 @@ mpiexec -n 8 /bin/hostname
 1. `-help` qsub help screen
 2. `-q` queue: submit job to specefic queue
 3. `-pe` parallel environment: set up parallel environment
-4. TODO
-5. TODO
+4. `-cwd` execute job in current working directory. If you omit this option, you job will execute in $HOME, which is usually a bad idea. Input/output file names are relative to this directory.
+5. `-w v` check whether the syntax of the job is okay (do not submit the job)
+
+See https://www.uibk.ac.at/zid/systeme/hpc-systeme/common/tutorials/sge-howto.html for full documentation.
 
 ### How to run a MPI program in parallel
 
