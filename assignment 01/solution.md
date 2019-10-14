@@ -57,7 +57,7 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 
 ### Measured data
 
-* bandwith between different cores of same node:
+* bandwidth between different cores of same node:
 ```
 # Size      Bandwidth (MB/s)
 1                       4.26
@@ -85,7 +85,13 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 4194304              1634.46
 ```
 
-* bandwith between different nodes:
+* bandwidth between sockets of same node:
+```
+# Size      Bandwidth (MB/s)
+TODO
+```
+
+* bandwidth between different nodes:
 
 ```
 # Size      Bandwidth (MB/s)
@@ -209,6 +215,7 @@ As expected the latency between two cores of the same node is smaller than betwe
 
 ### The modified experiment
 With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
+
 To run the two processes (MPI ranks) on different cores of the same socket, we use
 ```shell
 qsub -binding linear:2 -pe openmpi-2perhost 2 script.sh
