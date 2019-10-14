@@ -116,7 +116,6 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 
 * latency between cores of same node:
 ```
-# OSU MPI Latency Test v5.6.2
 # Size          Latency (us)
 0                       0.40
 1                       0.46
@@ -141,7 +140,6 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 524288                 87.36
 1048576               177.77
 2097152              1297.33
-
 ```
 
 * latency between differnt nodes:
@@ -170,8 +168,6 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 524288                357.98
 1048576               699.26
 2097152              1379.17
-
-
 ```
 
 ### Observed effects
@@ -179,6 +175,8 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 When increasing the number of messages in the test, the latency also increases on a linear basis, while the bandwidth decreases. 
 
 Although this effect is to be expected, we can see that the results for both bandwidth and latency don't really change until we hit an amount of 100 messages or so.
+
+As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less. While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
 
 ### The modified experiment
 
