@@ -207,7 +207,7 @@ TODO
 
 ### Observed effects
 
-When increasing the number of messages in the test, the latency also increases on a linear basis, while the bandwidth decreases. 
+When increasing the number of messages in the test, the latency also increases on a linear basis. While the bandwidth overall increases aswell, it doesn't really do that in a linear way. 
 
 Although this effect is to be expected, we can see that the results for both bandwidth and latency don't really change until we hit an amount of 100 messages or so.
 
