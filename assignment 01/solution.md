@@ -211,7 +211,9 @@ When increasing the number of messages in the test, the latency also increases o
 
 Although this effect is to be expected, we can see that the results for both bandwidth and latency don't really change until we hit an amount of 100 messages or so.
 
-As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less. While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
+As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less (see chart below). While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
+
+![latency chart](./chart.png "Chart of latency measurements")
 
 ### The modified experiment
 With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
