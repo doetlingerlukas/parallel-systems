@@ -55,6 +55,34 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 
 ## Exercise 2
 
+### Observed effects
+
+When increasing the number of messages in the test, the latency also increases on a linear basis. While the bandwidth overall increases aswell, it doesn't really do that in a linear way. 
+
+Although this effect is to be expected, we can see that the results for both bandwidth and latency don't really change until we hit an amount of 100 messages or so.
+
+As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less (see chart below). While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
+
+![](chart.png)
+
+### The modified experiment
+With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
+
+To run the two processes (MPI ranks) on different cores of the same socket, we use
+```shell
+qsub -binding linear:2 -pe openmpi-2perhost 2 script.sh
+```
+
+TODO: To run the two processes (MPI ranks) on different sockets of the same node, we use
+```shell
+qsub -binding striding:2:4 -pe openmpi-2perhost 2 script.sh
+```
+
+To run the two processes (MPI ranks) on different nodes, we use
+```shell
+qsub -pe openmpi-1perhost 2 script.sh
+```
+
 ### Measured data
 
 * bandwidth between different cores of same node:
@@ -204,31 +232,3 @@ TODO
 | 1048576 |  699.26 |
 | 2097152 | 1379.17 |
 
-
-### Observed effects
-
-When increasing the number of messages in the test, the latency also increases on a linear basis. While the bandwidth overall increases aswell, it doesn't really do that in a linear way. 
-
-Although this effect is to be expected, we can see that the results for both bandwidth and latency don't really change until we hit an amount of 100 messages or so.
-
-As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less (see chart below). While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
-
-![](chart.png)
-
-### The modified experiment
-With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
-
-To run the two processes (MPI ranks) on different cores of the same socket, we use
-```shell
-qsub -binding linear:2 -pe openmpi-2perhost 2 script.sh
-```
-
-TODO: To run the two processes (MPI ranks) on different sockets of the same node, we use
-```shell
-qsub -binding striding:2:4 -pe openmpi-2perhost 2 script.sh
-```
-
-To run the two processes (MPI ranks) on different nodes, we use
-```shell
-qsub -pe openmpi-1perhost 2 script.sh
-```
