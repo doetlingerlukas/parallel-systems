@@ -142,7 +142,36 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 2097152              1297.33
 ```
 
-* latency between differnt nodes:
+* latency between sockets of same node:
+```
+# Size          Latency (us)
+0                       0.43
+1                       0.46
+2                       0.46
+4                       0.46
+8                       0.47
+16                      0.48
+32                      0.49
+64                      0.52
+128                     0.56
+256                     0.59
+512                     0.87
+1024                    1.01
+2048                    1.31
+4096                    4.01
+8192                    4.90
+16384                   6.62
+32768                   9.23
+65536                  14.52
+131072                 24.91
+262144                 45.63
+524288                 88.14
+1048576               177.09
+2097152              1297.91
+4194304              2880.99
+```
+
+* latency between different nodes:
 ```
 # Size          Latency (us)
 0                       3.50
@@ -179,10 +208,15 @@ Although this effect is to be expected, we can see that the results for both ban
 As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less. While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
 
 ### The modified experiment
-
+With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
 To run the two processes (MPI ranks) on different cores of the same socket, we use
 ```shell
-qsub -pe openmpi-2perhost 2 script.sh
+qsub -binding linear:2 -pe openmpi-2perhost 2 script.sh
+```
+
+TODO: To run the two processes (MPI ranks) on different sockets of the same node, we use
+```shell
+qsub -binding striding:2:4 -pe openmpi-2perhost 2 script.sh
 ```
 
 To run the two processes (MPI ranks) on different nodes, we use
