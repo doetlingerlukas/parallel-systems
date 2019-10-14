@@ -51,7 +51,7 @@ mpiexec -n 8 /bin/hostname
 
 ### How to run a MPI program in parallel
 
-The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel environment. The line as it is means: set up 8 nodes with each node having 2 CPU/core slots. To actually start your program in parallel, the job script needs to be executed with the command `mpiexec -n 8 <script_file>`. Again the `-n` flag is set to 8 to execute the program on 8 nodes.
+The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel environment. The line as it is means: reserve 8 cores in total, with each used node having a maximum of 2 CPU/core slots. To actually start your program in parallel, the job script needs to be executed with the command `mpiexec -n 8 <script_file>`. The `-n` flag is set to 8, which executes the command/program 8 times (i.e. starts 8 processes).
 
 ## Exercise 2
 
