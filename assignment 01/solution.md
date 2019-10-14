@@ -63,7 +63,9 @@ Although this effect is to be expected, we can see that the results for latency 
 
 As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less (see chart below). While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
 
-![](chart.png)
+![](latency.png)
+
+![](bandwidth.png)
 
 ### The modified experiment
 With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
