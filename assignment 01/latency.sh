@@ -10,11 +10,10 @@ module load openmpi/4.0.1
 
 if [ $(whoami) = 'cb761016' ]
 then
-  mpiexec -n 2 /home/cb76/cb761016/a_01/t2/micro-benchmarks/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
-elif [ $(whoami) = 'cb' ]
+  mpiexec -display-allocation -display-map /home/cb76/cb761016/a_01/t2/micro-benchmarks/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
+elif [ $(whoami) = 'cb761022' ]
 then
-  # TODO: enter path to exe for different user + add username in alif statement
-  /bin/hostname
+  mpiexec -display-allocation -display-map /home/cb76/cb761022/micro_benchmarks/libexec/osu-micro-benchmarks/mpi/pt2pt/osu_latency
 else 
   # TODO: enter path to exe for third user
   whoami
