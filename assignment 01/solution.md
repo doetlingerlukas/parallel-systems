@@ -72,18 +72,25 @@ With the ```-binding``` parameter it is possible to set specific core bindings (
 
 To run the two processes (MPI ranks) on different cores of the same socket, we use
 ```shell
-qsub -binding linear:2 -pe openmpi-2perhost 2 script.sh
+qsub -binding explicit:0,0:0,1 -pe openmpi-2perhost 2 script.sh
 ```
 
 To run the two processes (MPI ranks) on different sockets of the same node, we use
 ```shell
-qsub -binding striding:2:4 -pe openmpi-2perhost 2 script.sh
+qsub -binding explicit:0,0:1,0 -pe openmpi-2perhost 2 script.sh
 ```
 
 To run the two processes (MPI ranks) on different nodes, we use
 ```shell
 qsub -pe openmpi-1perhost 2 script.sh
 ```
+
+### Verify rank placement
+
+To verify rank placement, we use the parameter `-display-allocation` and `-display-map` with `mpiexec`.
+
+* `-display-allocation` shows the allocated resources on each of the used nodes
+* `-display-map` shows all the mapped locations (socket and cpu core) for each process prior to launch
 
 ### Measured data
 
