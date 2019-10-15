@@ -15,37 +15,22 @@
 ```
 #!/bin/bash
 
-#Excecute job in the queue "std.q" unless you have special requirements.
 #$ -q std.q
-
-# The batch system should use the current directory as working directory.
 #$ -cwd
-
-# Name your job. Unless you use the -o and -e options, output will
-# go to a unique file name.ojob_id for each job.
 #$ -N my_test_job
-
-# Redirect output stream to this file.
 #$ -o output.dat
-
-# Join the error stream to the output stream.
 #$ -j yes
-
-# 2 slots per node, 8 slots in total
 #$ -pe openmpi-2perhost 8
 
-# load module
 module load openmpi/4.0.1
-
-# start script
 mpiexec -n 8 /bin/hostname
 ```
 
 ### 5 most important qsub parameters
 
-1. `-help` qsub help screen
-2. `-q` queue: submit job to specefic queue
-3. `-pe` parallel environment: set up parallel environment
+1. `-pe` to set up parallel environment 
+2. `-q` to submit job to specefic queue
+3. `-N` to name a job
 4. `-o` to specify the output file
 5. `-cwd` to execute job in current working directory (defaults to `$HOME`)
 
@@ -55,20 +40,8 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 
 ## Exercise 2
 
-### Observed effects
-
-When increasing the number of messages in the test, the latency also increases on a linear basis. While the bandwidth overall increases aswell, it doesn't really do that in a linear way. 
-
-Although this effect is to be expected, we can see that the results for latency don't really change until we hit an amount of 100 messages or so. Another interesting behaviour we observed is the fluctuation in bandwith-measurements, when running both processes on the same node.
-
-As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less (see chart below). While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
-
-![](latency.png)
-
-![](bandwidth.png)
-
 ### The modified experiment
-With the ```-binding``` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
+With the `-binding` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
 
 To run the two processes (MPI ranks) on different cores of the same socket, we use
 ```shell
@@ -150,3 +123,15 @@ To verify rank placement, we use the parameter `-display-allocation` and `-displ
 | 1048576 |  177.90 |   185.25 |  698.74 |
 | 2097152 | 1287.09 |  1307.03 | 1379.51 |
 | 4194304 | 2894.17 |  2901.13 | 2746.77 |
+
+### Observed effects
+
+When increasing the number of messages in the test, the latency also increases on a linear basis. While the bandwidth overall increases aswell, it doesn't really do that in a linear way. 
+
+Although this effect is to be expected, we can see that the results for latency don't really change until we hit an amount of 100 messages or so. Another interesting behaviour we observed is the fluctuation in bandwith-measurements, when running both processes on the same node.
+
+As expected the latency between two cores of the same node is smaller than between two nodes. But with increasing size the difference becomes less (see chart below). While at a low size, the latency between two cores is roughly ten times smaller than between two nodes, at a large size the factor between them is only ~1.1. A similar effect can also be seen in the bandwith measurements.
+
+![](img/latency.png)
+
+![](img/bandwidth.png)
