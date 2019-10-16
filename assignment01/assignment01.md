@@ -43,6 +43,8 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 ### The modified experiment
 With the `-binding` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
 
+**From Proseminar session: use the mpiexec --map-by or --bind-by insead of sge -binding flag!**
+
 To run the two processes (MPI ranks) on different cores of the same socket, we use
 ```shell
 qsub -binding explicit:0,0:0,1 -pe openmpi-2perhost 2 script.sh
