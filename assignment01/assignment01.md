@@ -41,24 +41,24 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 ## Exercise 2
 
 ### The modified experiment
-With the `-binding` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
+To specify bindings, we use the `--map-by` flag for `mpiexec`. We modified our scripts, so we can use the same flag with the same syntax (or shortended `-mb`) on the script.
 
-**From Proseminar session: use the mpiexec --map-by or --bind-by insead of sge -binding flag!**
-
-To run the two processes (MPI ranks) on different cores of the same socket, we use
+To run the two processes (MPI ranks) on **different cores of the same socket**, we use
 ```shell
-qsub -binding explicit:0,0:0,1 -pe openmpi-2perhost 2 script.sh
+qsub -pe openmpi-2perhost 2 <bw.sh or latency.sh>
+```
+No binding necessary since `qsub` allocates in a linear fashion. We could add `--map-by core` at the end of the command to force a binding.
+
+To run the two processes (MPI ranks) on **different sockets of the same node**, we use
+```shell
+qsub -pe openmpi-2perhost 2 <bw.sh or latency.sh> --map-by socket
 ```
 
-To run the two processes (MPI ranks) on different sockets of the same node, we use
+To run the two processes (MPI ranks) on **different nodes**, we use
 ```shell
-qsub -binding explicit:0,0:1,0 -pe openmpi-2perhost 2 script.sh
+qsub -pe openmpi-1perhost 2 <bw.sh or latency.sh>
 ```
 
-To run the two processes (MPI ranks) on different nodes, we use
-```shell
-qsub -pe openmpi-1perhost 2 script.sh
-```
 
 ### Verify rank placement
 
@@ -73,58 +73,58 @@ To verify rank placement, we use the parameter `-display-allocation` and `-displ
 
 | Size      | same socket | same node | different nodes |
 | --------: | -----------------: | -----------------: | -----------------: |
-| 1       |    4.26 |    4.35 |    0.63 |
-| 2       |    8.67 |    8.76 |    1.27 |
-| 4       |   17.33 |   17.62 |    2.53 |
-| 8       |   34.21 |   35.14 |    5.11 |
-| 16      |   61.20 |   60.84 |   10.25 |
-| 32      |  123.70 |  123.72 |   20.49 |
-| 64      |  207.78 |  208.77 |   40.68 |
-| 128     |  349.22 |  357.32 |   77.88 |
-| 256     |  592.99 |  612.12 |  153.29 |
-| 512     | 1324.06 | 1364.25 |  294.33 |
-| 1024    | 2450.11 | 2502.65 |  537.06 |
-| 2048    | 4156.24 | 4215.30 |  745.94 |
-| 4096    | 1586.01 | 1589.86 |  924.45 |
-| 8192    | 2429.82 | 2417.88 | 1064.08 |
-| 16384   | 3151.97 | 3096.59 | 1104.19 |
-| 32768   | 4147.91 | 4128.32 | 1306.28 |
-| 65536   | 4973.10 | 4965.63 | 1420.98 |
-| 131072  | 5554.64 | 5533.68 | 1485.48 |
-| 262144  | 5932.29 | 5894.48 | 1502.98 |
-| 524288  | 6107.04 | 6059.00 | 1520.07 |
-| 1048576 | 6214.19 | 6187.72 | 1529.99 |
-| 2097152 | 5933.88 | 6156.45 | 1535.60 |
-| 4194304 | 1634.46 | 1616.92 | 1537.98 |
+| 1       |    4.26 |    4.39 |    0.63 |
+| 2       |    8.67 |    9.00 |    1.27 |
+| 4       |   17.33 |   18.07 |    2.53 |
+| 8       |   34.21 |   35.88 |    5.11 |
+| 16      |   61.20 |   67.01 |   10.25 |
+| 32      |  123.70 |  135.60 |   20.49 |
+| 64      |  207.78 |  199.87 |   40.68 |
+| 128     |  349.22 |  193.91 |   77.88 |
+| 256     |  592.99 |  295.22 |  153.29 |
+| 512     | 1324.06 |  474.67 |  294.33 |
+| 1024    | 2450.11 |  643.15 |  537.06 |
+| 2048    | 4156.24 |  822.11 |  745.94 |
+| 4096    | 1586.01 | 1219.65 |  924.45 |
+| 8192    | 2429.82 | 1976.58 | 1064.08 |
+| 16384   | 3151.97 | 2740.98 | 1104.19 |
+| 32768   | 4147.91 | 3785.42 | 1306.28 |
+| 65536   | 4973.10 | 4691.42 | 1420.98 |
+| 131072  | 5554.64 | 5366.83 | 1485.48 |
+| 262144  | 5932.29 | 5678.31 | 1502.98 |
+| 524288  | 6107.04 | 5995.15 | 1520.07 |
+| 1048576 | 6214.19 | 6181.23 | 1529.99 |
+| 2097152 | 5933.88 | 5995.51 | 1535.60 |
+| 4194304 | 1634.46 | 1620.56 | 1537.98 |
 
 #### Latency (us)
 
 | Size | same socket | same node | different nodes |
 | --------: | -----------------: | -----------------: | -----------------: |
-| 0       |    0.41 |     0.43 |    3.50 |
-| 1       |    0.46 |     0.48 |    3.55 |
-| 2       |    0.46 |     0.48 |    3.55 |
-| 4       |    0.46 |     0.48 |    3.55 |
-| 8       |    0.47 |     0.48 |    3.61 |
-| 16      |    0.49 |     0.50 |    3.63 |
-| 32      |    0.48 |     0.50 |    3.67 |
-| 64      |    0.53 |     0.55 |    3.84 |
-| 128     |    0.56 |     0.57 |    4.84 |
-| 256     |    0.60 |     0.61 |    5.35 |
-| 512     |    0.88 |     0.88 |    6.25 |
-| 1024    |    1.01 |     1.03 |    7.43 |
-| 2048    |    1.30 |     1.32 |    9.97 |
-| 4096    |    3.94 |     4.03 |   12.61 |
-| 8192    |    4.86 |     4.97 |   18.46 |
-| 16384   |    6.57 |     6.64 |   26.24 |
-| 32768   |    9.18 |     9.23 |   36.68 |
-| 65536   |   14.50 |    14.52 |   57.71 |
-| 131072  |   24.88 |    25.06 |  100.57 |
-| 262144  |   45.64 |    45.94 |  187.17 |
-| 524288  |   87.21 |    90.42 |  358.09 |
-| 1048576 |  177.90 |   185.25 |  698.74 |
-| 2097152 | 1287.09 |  1307.03 | 1379.51 |
-| 4194304 | 2894.17 |  2901.13 | 2746.77 |
+| 0       |    0.41 |     0.63 |    3.50 |
+| 1       |    0.46 |     0.69 |    3.55 |
+| 2       |    0.46 |     0.69 |    3.55 |
+| 4       |    0.46 |     0.69 |    3.55 |
+| 8       |    0.47 |     0.69 |    3.61 |
+| 16      |    0.49 |     0.82 |    3.63 |
+| 32      |    0.48 |     0.83 |    3.67 |
+| 64      |    0.53 |     0.93 |    3.84 |
+| 128     |    0.56 |     1.16 |    4.84 |
+| 256     |    0.60 |     1.42 |    5.35 |
+| 512     |    0.88 |     2.21 |    6.25 |
+| 1024    |    1.01 |     2.99 |    7.43 |
+| 2048    |    1.30 |     4.75 |    9.97 |
+| 4096    |    3.94 |     4.84 |   12.61 |
+| 8192    |    4.86 |     5.86 |   18.46 |
+| 16384   |    6.57 |     7.62 |   26.24 |
+| 32768   |    9.18 |    10.23 |   36.68 |
+| 65536   |   14.50 |    16.31 |   57.71 |
+| 131072  |   24.88 |    28.16 |  100.57 |
+| 262144  |   45.64 |    51.99 |  187.17 |
+| 524288  |   87.21 |    97.16 |  358.09 |
+| 1048576 |  177.90 |   192.50 |  698.74 |
+| 2097152 | 1287.09 |   384.03 | 1379.51 |
+| 4194304 | 2894.17 |  2603.40 | 2746.77 |
 
 ### Observed effects
 
