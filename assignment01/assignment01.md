@@ -41,24 +41,24 @@ The line `#$ -pe openmpi-2perhost 8` in the job script sets up the parallel envi
 ## Exercise 2
 
 ### The modified experiment
-With the `-binding` parameter it is possible to set specific core bindings (source: http://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html).
+To specify bindings, we use the `--map-by` flag for `mpiexec`. We modified our scripts, so we can use the same flag with the same syntax (or shortended `-mb`) on the script.
 
-**From Proseminar session: use the mpiexec --map-by or --bind-by insead of sge -binding flag!**
-
-To run the two processes (MPI ranks) on different cores of the same socket, we use
+To run the two processes (MPI ranks) on **different cores of the same socket**, we use
 ```shell
-qsub -binding explicit:0,0:0,1 -pe openmpi-2perhost 2 script.sh
+qsub -pe openmpi-2perhost 2 <bw.sh or latency.sh>
+```
+No binding necessary since `qsub` allocates in a linear fashion. We could add `--map-by core` at the end of the command to force a binding.
+
+To run the two processes (MPI ranks) on **different sockets of the same node**, we use
+```shell
+qsub -pe openmpi-2perhost 2 <bw.sh or latency.sh> --map-by socket
 ```
 
-To run the two processes (MPI ranks) on different sockets of the same node, we use
+To run the two processes (MPI ranks) on **different nodes**, we use
 ```shell
-qsub -binding explicit:0,0:1,0 -pe openmpi-2perhost 2 script.sh
+qsub -pe openmpi-1perhost 2 <bw.sh or latency.sh>
 ```
 
-To run the two processes (MPI ranks) on different nodes, we use
-```shell
-qsub -pe openmpi-1perhost 2 script.sh
-```
 
 ### Verify rank placement
 
