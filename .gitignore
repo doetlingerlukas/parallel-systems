@@ -2,7 +2,9 @@
 *
 !*.*
 !*/
+!Makefile
 
 # ignored filetypes
 *.o
 *.exe
+
