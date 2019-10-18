@@ -1,0 +1,8 @@
+# ignore all files without extensions
+*
+!*.*
+!*/
+
+# ignored filetypes
+*.o
+*.exe
