@@ -25,4 +25,4 @@ done
 
 module load openmpi/4.0.1
 
-mpiexec -n $processes $program
+mpiexec -n $processes --mca btl tcp,self $program
