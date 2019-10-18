@@ -1,18 +1,28 @@
-CC=mpicc
-CC_FLAGS=-O2 -std=c99 -Wall -Wextra -pedantic
+CC = mpicc
+CPP = g++
+CC_FLAGS = -O2 -std=c99 -Wall -Wextra -pedantic
+CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
+
+TARGETS = pi_seq pi_mpi
 
 .PHONEY: all
-all: pi_mpi
+all: pi_seq pi_mpi
+
+.PHONEY: seq
+seq: pi_seq
+
+pi_seq: pi_seq.cpp
+	$(CPP) $(CPP_FLAGS) $< -o pi_seq
 
 pi_mpi: pi_mpi.c
-	@$(CC) $(CC_FLAGS) $< -o pi_mpi
+	$(CC) $(CC_FLAGS) $< -o pi_mpi
 
 .PHONEY: clean
 clean:
-	@rm pi_mpi
+	$(RM) $(TARGETS)
 
 .PHONEY: run
-run: all
-	@echo "Parallel:"
-	@./pi_mpi
+run: pi_seq
+	@echo "Sequential:"
+	@./pi_seq
 	@echo

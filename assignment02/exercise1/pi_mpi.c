@@ -13,8 +13,7 @@ int main(int argc, char* argv[]) {
 
     long samples = 1000000000;
     if(argc > 1) {
-        char *ptr;
-	    samples = strtol(argv[1], &ptr, 10);
+	    samples = strtol(argv[1], NULL, 10);
 	}
 
     long count = 0;
