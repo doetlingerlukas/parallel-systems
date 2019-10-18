@@ -14,11 +14,6 @@ do
       shift
       shift
       ;;
-    -s|--samples)
-      samples="$2"
-      shift
-      shift
-      ;;
   esac
 done
 
@@ -30,4 +25,4 @@ done
 
 module load openmpi/4.0.1
 
-mpiexec -n $processes $program $samples
+mpiexec -n $processes $program

@@ -4,17 +4,17 @@
 #include <math.h>
 #include <time.h>
  
-int main(int argc, char* argv[]) {
+int main(int argc, char **argv) {
+
+    long samples = 1000000000;
+    if (argc > 1) {
+	    samples = atol(argv[1]);
+	}
 
     int rank, numProcs; 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-
-    long samples = 1000000000;
-    if(argc > 1) {
-	    samples = strtol(argv[1], NULL, 10);
-	}
 
     long count = 0;
     srand(time(NULL) + rank);
