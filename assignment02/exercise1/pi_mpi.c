@@ -28,19 +28,11 @@ int main(int argc, char **argv) {
         }
     }
     
-    if (rank == 0) {
-        for(int r = 1; r < numProcs; r++) {
-            long result = 0;
-            MPI_Recv(&result, 1, MPI_LONG, r, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            count += result;
-        }
-    }
-    else {
-        MPI_Send(&count, 1, MPI_LONG, 0, 1, MPI_COMM_WORLD);
-    }
+    long result = 0;
+    MPI_Reduce(&count, &result, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
     
     if (rank == 0) {
-        double pi = ((double) count / (double) samples) * 4.0;
+        double pi = ((double) result / (double) samples) * 4.0;
         printf("(Parallel) Estimate of pi with %ld samples and %d ranks: \n", samples, numProcs);
         printf("π ≈ %g \n", pi);
     }
