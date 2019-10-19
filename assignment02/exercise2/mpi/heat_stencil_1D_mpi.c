@@ -46,16 +46,12 @@ int main(int argc, char **argv) {
 
   // ---------- compute ----------
 
-  // create a second buffer for the computation
-  Vector B = createVector(N);
-
   // for each time step ..
   for (int t = 0; t < T; t++) {
     // .. we propagate the temperature
     for (long long i = 0; i < N; i++) {
       // center stays constant (the heat is still on)
       if (i == source_x) {
-        B[i] = A[i];
         continue;
       }
 
@@ -67,13 +63,8 @@ int main(int argc, char **argv) {
       value_t tr = (i != N - 1) ? A[i + 1] : tc;
 
       // compute new temperature at current position
-      B[i] = tc + 0.2 * (tl + tr + (-2 * tc));
+      A[i] = tc + 0.2 * (tl + tr + (-2 * tc));
     }
-
-    // swap matrices (just pointers, not content)
-    Vector H = A;
-    A = B;
-    B = H;
 
     // show intermediate step
     if (!(t % 1000)) {
@@ -82,8 +73,6 @@ int main(int argc, char **argv) {
       printf("\n");
     }
   }
-
-  releaseVector(B);
 
   // ---------- check ----------
 
