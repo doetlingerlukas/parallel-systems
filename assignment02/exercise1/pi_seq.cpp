@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ctime>
 #include <cstdlib>
+#include <chrono>
 
 using namespace std;
 
@@ -10,6 +11,8 @@ int main(int argc, char **argv) {
 	if (argc > 1) {
         samples = strtol(argv[1], NULL, 10);
     }
+
+    auto start_time = chrono::high_resolution_clock::now();
 
     srand(time(NULL)); 
 
@@ -23,9 +26,13 @@ int main(int argc, char **argv) {
     }
 
     double pi = (4.0 * count) / samples; 
+
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
     
     cout << "\rπ ≈ " << pi << endl;
     cout << "was calculated with " << samples << " samples!" << endl;
+    cout << "This took " << duration << " millisenconds." << endl;
 
 	return EXIT_SUCCESS;
 }

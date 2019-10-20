@@ -1,6 +1,7 @@
 CC = mpicc
 CPP = g++
 CC_FLAGS = -O2 -std=c99 -Wall -Wextra -pedantic
+CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
 
 TARGETS = pi_seq pi_mpi
 
