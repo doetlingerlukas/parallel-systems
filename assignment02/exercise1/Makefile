@@ -13,7 +13,7 @@ seq: pi_seq
 pi_seq: pi_seq.cpp
 	$(CPP) $(CPP_FLAGS) $< -o pi_seq
 
-pi_mpi: pi_mpi.c
+pi_mpi: pi_mpi.cpp
 	$(CC) $(CPP_FLAGS) $< -o pi_mpi
 
 .PHONEY: clean

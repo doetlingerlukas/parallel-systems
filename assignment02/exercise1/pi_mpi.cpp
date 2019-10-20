@@ -1,7 +1,6 @@
-#include <stdlib.h>
-#include <mpi.h>
 #include <chrono>
 #include <iostream>
+#include <mpi.h>
 
 using namespace std;
  
