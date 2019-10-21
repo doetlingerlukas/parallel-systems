@@ -39,13 +39,14 @@ int main(int argc, char **argv) {
   cout << endl;
 
   // split problem size among ranks
-  auto N_rank = N / number_of_ranks;
+  int N_rank = N / number_of_ranks;
   int from = (rank_id * N_rank);
+  int to = (rank_id + 1) * N_rank;
 
   // ---------- compute ----------
 
   for (auto t = 0; t < T; t++) {
-    for (auto i = from; i < (from + (N_rank - 1)); i++) {
+    for (auto i = from; i < to; i++) {
       
       if (i == source_x) {
         continue;
@@ -58,7 +59,8 @@ int main(int argc, char **argv) {
       A[i] = t_current + 0.2 * (t_left + t_right + (-2 * t_current));
     }
 
-    MPI_Gather(&A.at(from), N_rank, MPI_DOUBLE, &A.at(from), N_rank, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    vector<double> to_send (A.begin() + from, A.begin() + to);
+    MPI_Gather(to_send.data(), N_rank, MPI_DOUBLE, A.data(), N_rank, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rank_id == 0) {
       
@@ -66,10 +68,11 @@ int main(int argc, char **argv) {
         cout << "Step t= " << t << "\t";
         printTemperature(A, N);
         cout << endl;
+        cout << "Size of A: " << A.size() << endl;
       }
     }
 
-    MPI_Bcast(&A.front(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(A.data(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   }
 
   // ---------- check ----------
