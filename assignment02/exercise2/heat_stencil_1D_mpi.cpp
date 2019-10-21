@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 
   // determine neighbour ranks ( -1 stands for no rank )
   int left = rank_id - 1;
-  int right = rank_id == (number_of_ranks - 1) ? -1 : rank_id - 1;
+  int right = rank_id == (number_of_ranks - 1) ? -1 : rank_id + 1;
   double left_cache = 0;
   double right_cache = 0;
 
@@ -54,6 +54,20 @@ int main(int argc, char **argv) {
 
   // ---------- compute ----------
   for (auto t = 0; t < T; t++) {
+    
+    if (right >= 0) {
+      MPI_Request req;
+      MPI_Isend(&rank_buffer[rank_buffer.size()-1], 1, MPI_DOUBLE, right, 0, MPI_COMM_WORLD, &req);
+      // cout << "Sent from " << rank_id << " to " << right << endl;
+      MPI_Request_free(&req);
+    }
+    if (left >= 0) {
+      MPI_Request req;
+      MPI_Isend(&rank_buffer[0], 1, MPI_DOUBLE, left, 0, MPI_COMM_WORLD, &req);
+      // cout << "Sent from " << rank_id << " to " << left << endl;
+      MPI_Request_free(&req);
+    }
+
     for (auto i = 0; i < rank_buffer.size(); i++) {
       
       if (contains_source && (source_x % N_rank) == i) {
@@ -65,20 +79,14 @@ int main(int argc, char **argv) {
       double t_right;
 
       if (right >= 0 && i == (rank_buffer.size() - 1)) {
-        MPI_Request req;
-        MPI_Isend(&t_current, 1, MPI_DOUBLE, right, 0, MPI_COMM_WORLD, &req);
-        cout << "Sent from " << rank_id << " to " << right << endl;
-        MPI_Request_free(&req);
+        
       }
 
       if (i == 0) {
         if (rank_id == 0) {
           t_left = t_current;
         } else {
-          MPI_Request req;
-          MPI_Isend(&t_current, 1, MPI_DOUBLE, left, 0, MPI_COMM_WORLD, &req);
-          cout << "Sent from " << rank_id << " to " << left << endl;
-          MPI_Request_free(&req);
+          
           MPI_Recv(&left_cache, 1, MPI_DOUBLE, left, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           t_left = left_cache;
         }
@@ -120,7 +128,7 @@ int main(int argc, char **argv) {
     printTemperature(A, N);
     cout << endl;
   }
-
+  
   auto success = 1;
   for (auto i = 0; i < N; i++) {
     auto temp = A[i];
@@ -131,7 +139,7 @@ int main(int argc, char **argv) {
   }
 
   cout << "Verification: " << ((success) ? "OK" : "FAILED") << endl;
-
+  
   MPI_Finalize();
   return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
