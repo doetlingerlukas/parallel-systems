@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   cout << endl;
 
   // split problem size among ranks
-  auto N_rank = (N + (number_of_ranks - 1)) / number_of_ranks;
+  auto N_rank = N / number_of_ranks;
   int from = (rank_id * N_rank);
 
   // ---------- compute ----------
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
       A[i] = t_current + 0.2 * (t_left + t_right + (-2 * t_current));
     }
 
-    MPI_Gather(A[from], N_rank, MPI_DOUBLE, A, N_rank, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather(&A.at(from), N_rank, MPI_DOUBLE, &A.at(from), N_rank, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (rank_id == 0) {
       
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    MPI_Bcast(A, N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&A.front(), N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
   }
 
   // ---------- check ----------
