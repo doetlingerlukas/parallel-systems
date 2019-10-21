@@ -7,6 +7,7 @@
 # ignored filetypes
 *.o
 *.exe
+*.dat
 
 # vs code 
 .vscode/
