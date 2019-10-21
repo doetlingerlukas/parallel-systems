@@ -8,7 +8,7 @@
 
 # Name your job. Unless you use the -o and -e options, output will
 # go to a unique file name.ojob_id for each job.
-#$ -N pi_seq
+#$ -N stencil_mpi
 
 # Redirect output stream to this file.
 #$ -o output.dat
@@ -16,8 +16,8 @@
 # Join the error stream to the output stream.
 #$ -j yes
 
-#$ -pe openmpi-2perhost 8
+#$ -pe openmpi-2perhost 4
 
 module load openmpi/4.0.1
 
-mpiexec -n 2 ./heat_stencil_1D_mpi
+mpiexec -n 4 ./heat_stencil_1D_mpi

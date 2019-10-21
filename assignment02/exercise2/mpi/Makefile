@@ -1,4 +1,4 @@
-CC=gcc
+CC=mpicc
 CC_FLAGS=-O2 -std=c99 -Wall -Wextra -pedantic
 
 .PHONEY: all

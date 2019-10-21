@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <mpi.h>
 
 typedef double value_t;
 
@@ -19,7 +20,7 @@ void printTemperature(Vector m, int N);
 
 int main(int argc, char **argv) {
   // 'parsing' optional input parameter = problem size
-  int N = 2000;
+  int N = 1000;
   if (argc > 1) {
     N = atoi(argv[1]);
   }
@@ -44,15 +45,33 @@ int main(int argc, char **argv) {
   printTemperature(A, N);
   printf("\n");
 
+  // MPI init
+  int rank_id, number_of_ranks; 
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank_id);
+  MPI_Comm_size(MPI_COMM_WORLD, &number_of_ranks);
+
+  int from = rank_id * N / number_of_ranks;
+  int to = (rank_id + 1) * N / number_of_ranks;
+
   // ---------- compute ----------
 
   // for each time step ..
   for (int t = 0; t < T; t++) {
     // .. we propagate the temperature
-    for (long long i = 0; i < N; i++) {
+    for (long long i = from; i < to; i++) {
       // center stays constant (the heat is still on)
       if (i == source_x) {
         continue;
+      }
+
+      if (i-1 < from && i != 0){ // wait until previous rank updates last element of his partition
+        MPI_Send(&A[i], 1, MPI_INT, rank_id-1, 0, MPI_COMM_WORLD);
+        MPI_Recv(&A[i-1], 1, MPI_INT, rank_id-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      } 
+      else if (i+1 > to && i != N){ // send last element to next rank
+        MPI_Send(&A[i], 1, MPI_INT, rank_id+1, 0, MPI_COMM_WORLD);
+        MPI_Recv(&A[i+1], 1, MPI_INT, rank_id+1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
 
       // get temperature at current position
@@ -65,31 +84,37 @@ int main(int argc, char **argv) {
       // compute new temperature at current position
       A[i] = tc + 0.2 * (tl + tr + (-2 * tc));
     }
-
-    // show intermediate step
-    if (!(t % 1000)) {
-      printf("Step t=%d:\t", t);
-      printTemperature(A, N);
-      printf("\n");
-    }
+ 
   }
 
   // ---------- check ----------
 
-  printf("Final:\t\t");
-  printTemperature(A, N);
-  printf("\n");
-
   int success = 1;
-  for (long long i = 0; i < N; i++) {
-    value_t temp = A[i];
-    if (273 <= temp && temp <= 273 + 60)
-      continue;
-    success = 0;
-    break;
-  }
+  if(rank_id == 0){
 
-  printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+    for (int t = 0; t < T; t++) {
+      // show intermediate step
+      if (!(t % 1000)) {
+        printf("Step t=%d:\t", t);
+        printTemperature(A, N);
+        printf("\n");
+      }
+    }
+
+    printf("Final:\t\t");
+    printTemperature(A, N);
+    printf("\n");
+
+    for (long long i = 0; i < N; i++) {
+      value_t temp = A[i];
+      if (273 <= temp && temp <= 273 + 60)
+        continue;
+      success = 0;
+      break;
+    }
+
+    printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+  }
 
   // ---------- cleanup ----------
 
