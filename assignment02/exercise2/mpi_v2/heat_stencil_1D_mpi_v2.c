@@ -15,8 +15,6 @@ Vector createVector(int N);
 
 void releaseVector(Vector m);
 
-void printStencil(Vector v, int T, int N);
-
 void printTemperature(Vector m, int N);
 
 // -- simulation code ---
@@ -62,7 +60,8 @@ int main(int argc, char **argv) {
   }
 
   // ---------- compute ----------
-  
+
+  Vector B = createVector(N);
   // for each time step ..
   for (int t = 0; t < T; t++) {
     MPI_Bcast(A, N, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -70,6 +69,7 @@ int main(int argc, char **argv) {
     for (long long i = from; i < to; i++) {
       // center stays constant (the heat is still on)
       if (i == N/4) {
+        B[i] = A[i];
         continue;
       }
 
@@ -81,24 +81,33 @@ int main(int argc, char **argv) {
       double tr = (i != N - 1) ? A[i + 1] : tc;
 
       // compute new temperature at current position
-      A[i] = tc + 0.2 * (tl + tr + (-2 * tc));
+      B[i] = tc + 0.2 * (tl + tr + (-2 * tc));
     }
+    
+    MPI_Reduce(B, A, N, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+
+    // show intermediate step
+    if ( rank_id == 0 && !(t % 1000)) {
+      printf("Step t=%d:\t", t);
+      printTemperature(A, N);
+      printf("\n");
+    }
+    
   }
 
+  releaseVector(B);
+
   if(rank_id == 0){
-    clock_gettime(CLOCK_REALTIME, &stop);
-    double result = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / 1e9;
 
-    // print intermediate steps
-    printStencil(A, T, N);
-
-    printf("time for computation: %f\n", result);
   }
 
   // ---------- check ----------
 
   int success = 1;
   if(rank_id == 0){
+    // stop time measurement
+    clock_gettime(CLOCK_REALTIME, &stop);
+    double result = (stop.tv_sec - start.tv_sec) + (stop.tv_nsec - start.tv_nsec) / 1e9;
 
     printf("Final:\t\t");
     printTemperature(A, N);
@@ -113,6 +122,9 @@ int main(int argc, char **argv) {
     }
 
     printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+
+   
+    printf("time for computation: %f\n", result);
   }
 
   // ---------- cleanup ----------
@@ -131,16 +143,6 @@ Vector createVector(int N) {
 }
 
 void releaseVector(Vector m) { free(m); }
-
-void printStencil(Vector v, int T, int N){
-  for (int t = 0; t < T; t++) {  
-      if (!(t % 1000)) {
-        printf("Step t=%d\t", t);
-        printTemperature(v, N);
-        printf("\n");
-      }
-  }
-}
 
 void printTemperature(Vector m, int N) {
   const char *colors = " .-:=+^X#%@";
