@@ -23,12 +23,6 @@ done
 #$ -o heat.dat
 #$ -j yes
 
-output="heat.dat"
-
-if [ -f $output ] ; then
-    rm $output
-fi
-
 module load gcc/8.2.0
 module load openmpi/4.0.1
 
