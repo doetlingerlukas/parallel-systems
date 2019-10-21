@@ -23,6 +23,7 @@ done
 #$ -o pi.dat
 #$ -j yes
 
+module load gcc/8.2.0
 module load openmpi/4.0.1
 
 mpiexec -n $processes --mca btl tcp,self $program
