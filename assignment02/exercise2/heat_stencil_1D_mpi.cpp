@@ -6,11 +6,16 @@
 
 using namespace std;
 
+// Tgs for MPI communiction
+const static int TO_LEFT = 0;
+const static int TO_RIGHT = 1;
+const static int TO_MAIN = 2;
+
 void printTemperature(vector<double> m, int N);
 
 int main(int argc, char **argv) {
-  // problem size
-  auto N = 200;
+  
+  auto N = 1000;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -29,8 +34,8 @@ int main(int argc, char **argv) {
   }
 
   // split problem size among ranks
-  int N_rank = (N + (number_of_ranks - 1)) / number_of_ranks;
-  int N_last_rank = N - ((N - N_rank) / N_rank) * N_rank;
+  auto N_rank = N / number_of_ranks;
+  auto N_last_rank = N - (N_rank * (number_of_ranks - 1));
   auto buffer_size = rank_id == number_of_ranks - 1 ? N_last_rank : N_rank;
 
   // compuation buffer for each rank
@@ -38,84 +43,81 @@ int main(int argc, char **argv) {
   vector<double> rank_swap_buffer (buffer_size, 273);
 
   // heat source
-  int source_x = N / 4;
-  bool contains_source = rank_id == (source_x / N_rank);
-  int source_index = source_x % N_rank;
+  auto source = N / 4;
+  bool contains_source = rank_id == (source / N_rank);
+  auto source_index = source % N_rank;
 
   if (contains_source) {
     rank_buffer[source_index] = 273 + 60;
   }
 
-  // ---------- compute ----------
+  // loop over time
   for (auto t = 0; t < T; t++) {
     
+    // send first element of buffer to left neighbour
     if (rank_id > 0) {
       MPI_Request req;
-      MPI_Isend(&rank_buffer[0], 1, MPI_DOUBLE, rank_id - 1, 0, MPI_COMM_WORLD, &req);
-      // cout << "Sent from " << rank_id << " to " << right << endl;
+      MPI_Isend(&rank_buffer[0], 1, MPI_DOUBLE, rank_id - 1, TO_LEFT, MPI_COMM_WORLD, &req);
       MPI_Request_free(&req);
     }
+    // send last element of buffer to right neigbour
     if (rank_id < (number_of_ranks - 1)) {
       MPI_Request req;
-      MPI_Isend(&rank_buffer[N_rank - 1], 1, MPI_DOUBLE, rank_id + 1, 1, MPI_COMM_WORLD, &req);
-      // cout << "Sent from " << rank_id << " to " << left << endl;
+      MPI_Isend(&rank_buffer[N_rank - 1], 1, MPI_DOUBLE, rank_id + 1, TO_RIGHT, MPI_COMM_WORLD, &req);
       MPI_Request_free(&req);
     }
 
+    // loop over buffer
     for (auto i = 0; i < buffer_size; i++) {
       
       if (contains_source && source_index == i) {
         rank_swap_buffer[i] = rank_buffer[i];
         continue;
       }
-      auto t_current = rank_buffer[i];
+      auto current_temp = rank_buffer[i];
+      double left_temp;
+      double right_temp;
 
-      double t_left;
-      double t_right;
-
+      // calclate left temp
       if (i == 0) {
         if (rank_id == 0) {
-          t_left = t_current;
+          left_temp = current_temp;
         } else {
-          MPI_Recv(&t_left, 1, MPI_DOUBLE, rank_id - 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Recv(&left_temp, 1, MPI_DOUBLE, rank_id - 1, TO_RIGHT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
       } else {
-        t_left = rank_buffer[i - 1];
+        left_temp = rank_buffer[i - 1];
       }
-
+      // calculate right temp
       if (i == buffer_size - 1) {
         if (rank_id == number_of_ranks - 1) {
-          t_right = t_current;
+          right_temp = current_temp;
         } else {
-          MPI_Recv(&t_right, 1, MPI_DOUBLE, rank_id + 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          MPI_Recv(&right_temp, 1, MPI_DOUBLE, rank_id + 1, TO_LEFT, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
       } else {
-        t_right = rank_buffer[i + 1];
+        right_temp = rank_buffer[i + 1];
       }
 
-      rank_swap_buffer[i] = t_current + 0.2 * (t_left + t_right + (-2 * t_current));
+      rank_swap_buffer[i] = current_temp + 0.2 * (left_temp + right_temp + (-2 * current_temp));
     }
 
-    // swap buffer
+    // swap pointers of buffer
     swap(rank_buffer, rank_swap_buffer);
   }
 
+  // Send all results to rank 0
   if (rank_id == 0) {
     rank_buffer.resize(N);
 
     for (auto i=1; i < number_of_ranks; i++) {
-      MPI_Recv(&rank_buffer[0] + N_rank * i, (i == number_of_ranks - 1 ? N_last_rank : N_rank), MPI_DOUBLE, i, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(&rank_buffer[0] + N_rank * i, (i == number_of_ranks - 1 ? N_last_rank : N_rank), MPI_DOUBLE, i, TO_MAIN, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
   } else {
-    MPI_Send(&rank_buffer[0], buffer_size, MPI_DOUBLE, 0, 2, MPI_COMM_WORLD);
+    MPI_Send(&rank_buffer[0], buffer_size, MPI_DOUBLE, 0, TO_MAIN, MPI_COMM_WORLD);
   }
 
-  // ---------- check ----------
-  /*
-  vector<double> A;
-  MPI_Gather(rank_buffer.data(), N_rank, MPI_DOUBLE, A.data(), N_rank, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-  */
-  
+  // ---------- check ----------  
   if (rank_id == 0) {
     cout << "Final:\t\t";
     printTemperature(rank_buffer, N);
@@ -152,23 +154,19 @@ void printTemperature(vector<double> m, int N) {
   // step size in each dimension
   int sW = N / W;
 
- 
   cout << "|";
-  
   for (auto i = 0; i < W; i++) {
     
     double max_t = 0;
-    for (int x = sW * i; x < sW * i + sW; x++) {
+    for (auto x = sW * i; x < sW * i + sW; x++) {
       max_t = (max_t < m[x]) ? m[x] : max_t;
     }
     double temp = max_t;
 
-    // pick the 'color'
     int c = ((temp - min) / (max - min)) * numColors;
     c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
 
     cout << colors[c];
   }
-
   cout << "|";
 }
