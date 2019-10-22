@@ -60,3 +60,16 @@ A large class of scientific applications are so-called stencil applications. The
 - Implement your chosen parallelization strategy as a second application `heat_stencil_1D_mpi`. Run it with varying numbers of ranks and problem sizes and verify its correctness by comparing the output to `heat_stencil_1D_seq`.
 - Discuss the effects and implications of your parallelization.
 
+
+### Time measurements
+
+| N | sequential [s] | 8pernode 8 [s] |
+| -: | -: | -: | -: | -: |
+| 500 | 1.91016 | 0.571594 |
+| 1000 | 6.1721 | 1.40361 |
+| 2000 | 29.2026 | 3.48575 |
+| 3000 | 70.2959 | 6.11116 |
+| 4000 | 124.933 | 13.3618 |
+
+![](img/heat_time.png)
+
