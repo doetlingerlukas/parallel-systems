@@ -64,7 +64,7 @@ A large class of scientific applications are so-called stencil applications. The
 ### Time measurements
 
 | N | sequential [s] | 8pernode 8 [s] |
-| -: | -: | -: | -: | -: |
+| -: | -: | -: |
 | 500 | 1.91016 | 0.571594 |
 | 1000 | 6.1721 | 1.40361 |
 | 2000 | 29.2026 | 3.48575 |
