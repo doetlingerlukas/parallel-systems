@@ -37,7 +37,7 @@ Our implementation was influenced by following tutorial: https://www.olcf.ornl.g
 | 100.000 | **4ms** | 1277ms | 850ms | 1688ms |
 | 1.000.000 | **29ms** | 1223ms | 996ms | 1255ms |
 | 10.000.000 | **289ms** | 3541ms | 2065ms | 1719ms |
-| 100.000.000 | **2931ms** | 15870ms | 13317ms | 6935ms |
+| 100.000.000 | 8685ms | 15870ms | 13317ms | **6935ms** |
 | 1.000.000.000 | 83326ms | 50032ms | 49660ms | **24808ms** |
 
 ![](img/pi_time.png)
