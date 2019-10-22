@@ -14,15 +14,34 @@ There are many ways of approximating π, one being a well-known Monte Carlo meth
 
 <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/MonteCarloIntegrationCircle.svg" width="40%">
 
-### Tasks
+### Consider a parallelization strategy using MPI. Which communication pattern(s) would you choose and why?
 
-- Write a sequential application `pi_seq` in C or C++ that computes π for a given number of samples (command line argument). Test your application for various, large sample sizes to verify the correctness of your implementation.
-- Consider a parallelization strategy using MPI. Which communication pattern(s) would you choose and why?
-    - TODO!
+We thought that the simplest approach would be using the `MPI_Reduce` function. `MPI_Reduce` is able to collect values from the ranks and aggregate them. With `MPI_SUM` as an aggregation function, this is exactly what we need in this case. We collect the values that are outside of the circle at each node, sum them up, and in the root rank we then calculate *pi* by dividing the collected value with the overall sample number (and multiplying by 4).
 
-- Implement your chosen parallelization strategy as a second application `pi_mpi`. Run it with varying numbers of ranks and sample sizes and verify its correctness by comparing the output to `pi_seq`.
-- Discuss the effects and implications of your parallelization.
-    - TODO!
+Our implementation was influenced by following tutorial: https://www.olcf.ornl.gov/tutorials/monte-carlo-pi/.
+
+### Accuracy effects of parallelization
+
+| samples | sequential | 2pernode 8 | δ sequential | δ 2pernode 8 |
+| -: | -: | -: | -: | -: |
+| 10000 | 3.134487 | 3.147200 | 0.0071 | 0.056 |
+| 100000 | 3.149609 | 3.140320 | 0.008017 | 0.001272 |
+| 1000000 | 3.143745 | 3.141460 | 0.0022 | 0.002153 |
+| 10000000 | 3.140680 | **3.141502** | 0.000912 | **0.00009** |
+
+### Time effects of parallelization
+
+| samples | sequential | 2pernode 2 | 2pernode 4 | 2pernode 8 |
+| -: | -: | -: | -: | -: |
+| 10.000 | 1ms | 1064ms | 846ms | 1360ms |
+| 100.000 | 4ms | 1277ms | 850ms | 1688ms |
+| 1.000.000 | 29ms | 1223ms | 996ms | 1255ms |
+| 10.000.000 | 289ms | 3541ms | 2065ms | 1719ms |
+| 100.000.000 | 2931ms | 15870ms | 13317ms | 6935ms |
+| 1.000.000.000 | 83326ms | 50032ms | 49660ms | 24808ms |
+
+![](img/pi_time.png)
+![](img/pi_time_log.png)
 
 ## Exercise 2
 
