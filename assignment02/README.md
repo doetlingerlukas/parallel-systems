@@ -6,7 +6,7 @@ The goal of this assignment is to implement some basic MPI applications.
 
 ## Exercise 1
 
-This exercise consists in writing a parallel application to speed up the computation of π.
+This exercise consists of writing a parallel application to speed up the computation of π.
 
 ### Description
 
@@ -47,11 +47,13 @@ Our implementation was influenced by following tutorial: https://www.olcf.ornl.g
 
 This exercise consists in parallelizing an application simulating the propagation of heat.
 
-### Description
+Our solution was inspired by the following approach: https://people.sc.fsu.edu/~jburkardt/c_src/heat_mpi/heat_mpi.html
 
-A large class of scientific applications are so-called stencil applications. These simulate time-dependent physical processes such as the propagation of heat or pressure in a given medium. The core of the simulation operates on a grid and updates each cell with information from its neighbor cells.
+### Parallelization strategy
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/2D_von_Neumann_Stencil.svg" width="40%">
+We split the problem size `N` between all ranks. Therefore we get a different area of the 1D room for each of the ranks. When computing the heat distribution, each rank needs to know the values at it's left and right border, for every timestamp ìn `T`.
+
+Before entering the temp-calculation for a timestamp, a rank uses **no-blocking** mpi-send to give it's neighbours the values which they need to know (i.e., rank3 would send it's first value to rank2 and it's last to rank5). To obtain a value from another ranks area, we use **blocking** mpi-recieve. 
 
 ### Tasks
 
