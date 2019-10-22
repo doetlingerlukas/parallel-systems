@@ -26,4 +26,4 @@ done
 module load gcc/8.2.0
 module load openmpi/4.0.1
 
-mpiexec -n $processes --mca btl tcp,self $program
+mpiexec -n $processes --mca btl self,vader,tcp $program
