@@ -4,6 +4,15 @@ The goal of this assignment is to implement some basic MPI applications.
 
 *by Andreas Peintner, Josef Gugglberger and Lukas Dötlinger*
 
+### How to execute
+
+Navigate into an exercise-direcotry and run `make` to build the executables. 
+
+To submit a job to SGE, use the provided script like this:
+```shell
+qsub -sync yes -pe openmpi-8perhost 8 job.sh -n 8 -p '<executable> <param for computation>'
+```
+
 ## Exercise 1
 
 This exercise consists of writing a parallel application to speed up the computation of π.
@@ -54,6 +63,8 @@ Our solution was inspired by the following approach: https://people.sc.fsu.edu/~
 We split the problem size `N` between all ranks. Therefore we get a different area of the 1D room for each of the ranks. When computing the heat distribution, each rank needs to know the values at it's left and right border, for every timestamp ìn `T`.
 
 Before entering the temp-calculation for a timestamp, a rank uses **no-blocking** mpi-send to give it's neighbours the values which they need to know (i.e., rank3 would send it's first value to rank2 and it's last to rank5). To obtain a value from another ranks area, we use **blocking** mpi-recieve. 
+
+At the end, **blocking** mpi-send and -recieve are used to send all areas to the main rank. 
 
 ### Tasks
 
