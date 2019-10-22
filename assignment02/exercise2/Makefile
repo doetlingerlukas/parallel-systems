@@ -11,7 +11,7 @@ all: heat_stencil_seq heat_stencil_mpi
 seq: heat_stencil_seq
 
 heat_stencil_seq: heat_stencil_1D_seq.cpp
-	$(CPP) $(CPP_FLAGS) $< -o heat_stencil_seq
+	$(CC) $(CPP_FLAGS) $< -o heat_stencil_seq
 
 heat_stencil_mpi: heat_stencil_1D_mpi.cpp
 	$(CC) $(CPP_FLAGS) $< -o heat_stencil_mpi

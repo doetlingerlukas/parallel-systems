@@ -10,7 +10,7 @@ void printTemperature(vector<double> m, int N);
 
 int main(int argc, char **argv) {
   // problem size
-  auto N = 2000;
+  auto N = 200;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -20,6 +20,8 @@ int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_id);
   MPI_Comm_size(MPI_COMM_WORLD, &number_of_ranks);
+
+  double start = MPI_Wtime();
 
   auto T = N * 500;
   if (rank_id == 0) {
@@ -129,6 +131,7 @@ int main(int argc, char **argv) {
     }
 
     cout << "Verification: " << ((success) ? "OK" : "FAILED") << endl;
+    cout << "elapsed time: " << MPI_Wtime() - start << endl;
   }
   
   MPI_Finalize();

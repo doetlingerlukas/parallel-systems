@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <mpi.h>
 
 #define RESOLUTION 120
 
@@ -8,8 +9,12 @@ using namespace std;
 void printTemperature(vector<double> m, int N);
 
 int main(int argc, char **argv) {
+
+  MPI_Init(0,0);
+  double start = MPI_Wtime();
+
   // problem size
-  auto N = 2000;
+  auto N = 3000;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -56,11 +61,13 @@ int main(int argc, char **argv) {
     B = H;
 
     // show intermediate step
+    /*
     if (!(t % 1000)) {
       cout << "Step t= " << t << "\t";
       printTemperature(A, N);
       cout << endl;
     }
+    */
   }
 
   // ---------- check ----------
@@ -80,6 +87,8 @@ int main(int argc, char **argv) {
 
   cout << "Verification: " << ((success) ? "OK" : "FAILED") << endl;
 
+  cout << "elapsed time: " << MPI_Wtime() - start << endl;
+  MPI_Finalize();
   return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
