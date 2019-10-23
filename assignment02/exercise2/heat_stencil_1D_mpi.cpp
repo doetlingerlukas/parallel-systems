@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// Tgs for MPI communiction
+// Tags for MPI communiction
 const static int TO_LEFT = 0;
 const static int TO_RIGHT = 1;
 const static int TO_MAIN = 2;
@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_id);
   MPI_Comm_size(MPI_COMM_WORLD, &number_of_ranks);
 
+  // start wall time clock
   double start = MPI_Wtime();
 
   auto T = N * 500;
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
 
   // split problem size among ranks
   auto N_rank = N / number_of_ranks;
-  auto N_last_rank = N - (N_rank * (number_of_ranks - 1));
+  auto N_last_rank = N - (N_rank * (number_of_ranks - 1)); // last rank may have different problem size
   auto buffer_size = rank_id == number_of_ranks - 1 ? N_last_rank : N_rank;
 
   // compuation buffer for each rank
@@ -54,13 +55,13 @@ int main(int argc, char **argv) {
   // loop over time
   for (auto t = 0; t < T; t++) {
     
-    // send first element of buffer to left neighbour
+    // send first element of current rank buffer to left neighbour
     if (rank_id > 0) {
       MPI_Request req;
       MPI_Isend(&rank_buffer[0], 1, MPI_DOUBLE, rank_id - 1, TO_LEFT, MPI_COMM_WORLD, &req);
       MPI_Request_free(&req);
     }
-    // send last element of buffer to right neigbour
+    // send last element of current rank buffer to right neigbour
     if (rank_id < (number_of_ranks - 1)) {
       MPI_Request req;
       MPI_Isend(&rank_buffer[N_rank - 1], 1, MPI_DOUBLE, rank_id + 1, TO_RIGHT, MPI_COMM_WORLD, &req);
@@ -106,14 +107,14 @@ int main(int argc, char **argv) {
     swap(rank_buffer, rank_swap_buffer);
   }
 
-  // Send all results to rank 0
-  if (rank_id == 0) {
+  if (rank_id == 0) { // receive all results in rank 0
     rank_buffer.resize(N);
 
     for (auto i=1; i < number_of_ranks; i++) {
-      MPI_Recv(&rank_buffer[0] + N_rank * i, (i == number_of_ranks - 1 ? N_last_rank : N_rank), MPI_DOUBLE, i, TO_MAIN, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      auto size = (i == number_of_ranks - 1 ? N_last_rank : N_rank);
+      MPI_Recv(&rank_buffer[0] + N_rank * i, size, MPI_DOUBLE, i, TO_MAIN, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     }
-  } else {
+  } else { // send all results to rank 0
     MPI_Send(&rank_buffer[0], buffer_size, MPI_DOUBLE, 0, TO_MAIN, MPI_COMM_WORLD);
   }
 

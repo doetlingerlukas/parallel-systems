@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   double start = MPI_Wtime();
 
   // problem size
-  auto N = 3000;
+  auto N = 1000;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
