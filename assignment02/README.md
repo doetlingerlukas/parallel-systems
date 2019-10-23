@@ -25,13 +25,13 @@ There are many ways of approximating π, one being a well-known Monte Carlo meth
 
 ### Consider a parallelization strategy using MPI. Which communication pattern(s) would you choose and why?
 
-We thought that the simplest approach would be using the `MPI_Reduce` function. `MPI_Reduce` is able to collect values from the ranks and aggregate them. With `MPI_SUM` as an aggregation function, this is exactly what we need in this case. We collect the values that are outside of the circle at each node, sum them up, and in the root rank we then calculate *pi* by dividing the collected value with the overall sample number (and multiplying by 4).
+We thought that the simplest approach would be using the `MPI_Reduce` function. `MPI_Reduce` can collect values from the ranks and aggregate them. With `MPI_SUM` as an aggregation function, this is exactly what we need in this case. We collect the values that are outside of the circle at each node, sum them up, and in the root rank, we then calculate *pi* by dividing the collected value with the overall sample number (and multiplying by 4).
 
 Our implementation was influenced by following tutorial: https://www.olcf.ornl.gov/tutorials/monte-carlo-pi/.
 
 ### Accuracy effects of parallelization
 
-| samples | sequential | 2pernode 8 | δ sequential | δ 2pernode 8 |
+| samples | sequential | 2perhost 8 | δ sequential | δ 2perhost 8 |
 | -: | -: | -: | -: | -: |
 | 10.000 | 3.134487 | 3.147200 | 0.0071 | 0.056 |
 | 100.000 | 3.149609 | 3.140320 | 0.008017 | 0.001272 |
@@ -40,7 +40,7 @@ Our implementation was influenced by following tutorial: https://www.olcf.ornl.g
 
 ### Time effects of parallelization
 
-| samples | sequential | 2pernode 2 | 2pernode 4 | 2pernode 8 |
+| samples | sequential | 2perhost 2 | 2perhost 4 | 2perhost 8 |
 | -: | -: | -: | -: | -: |
 | 10.000 | **1ms** | 1064ms | 846ms | 1360ms |
 | 100.000 | **4ms** | 1277ms | 850ms | 1688ms |
@@ -58,14 +58,6 @@ This exercise consists in parallelizing an application simulating the propagatio
 
 Our solution was inspired by the following approach: https://people.sc.fsu.edu/~jburkardt/c_src/heat_mpi/heat_mpi.html
 
-### Parallelization strategy
-
-We split the problem size `N` between all ranks. Therefore we get a different area of the 1D room for each of the ranks. When computing the heat distribution, each rank needs to know the values at it's left and right border, for every timestamp ìn `T`.
-
-Before entering the temp-calculation for a timestamp, a rank uses **no-blocking** mpi-send to give it's neighbours the values which they need to know (i.e., rank3 would send it's first value to rank2 and it's last to rank5). To obtain a value from another ranks area, we use **blocking** mpi-recieve. 
-
-At the end, **blocking** mpi-send and -recieve are used to send all areas to the main rank. 
-
 ### Tasks
 
 - A sequential implementation of a 1-D heat stencil is available in [heat_stencil_1D_seq.c](heat_stencil_1D/heat_stencil_1D_seq.c). Read the code and make sure you understand what happens. See the Wikipedia article on [Stencil Codes](https://en.wikipedia.org/wiki/Stencil_code) for more information.
@@ -73,10 +65,21 @@ At the end, **blocking** mpi-send and -recieve are used to send all areas to the
 - Implement your chosen parallelization strategy as a second application `heat_stencil_1D_mpi`. Run it with varying numbers of ranks and problem sizes and verify its correctness by comparing the output to `heat_stencil_1D_seq`.
 - Discuss the effects and implications of your parallelization.
 
+### Parallelization strategy
+
+We split the problem size `N` between all ranks. Therefore we get a different area of the 1D room for each of the ranks. When computing the heat distribution, each rank needs to know the values at it's left and right border, for every timestamp ìn `T`.
+
+Before entering the temp-calculation for a timestamp, a rank uses **no-blocking** mpi-send to give its neighbours the values which they need to know (i.e., rank3 would send it's first value to rank2 and it's last to rank5). To obtain a value from another ranks area, we use **blocking** mpi-recieve. 
+
+In the end, **blocking** mpi-send and -recieve are used to send all areas to the main rank. 
+
+In the parallel algorithm, we had to omit the printing of intermediate results, because we don't have a consistent array after each time unit. Every rank is at a different position in computing and reports his array only at the end to rank 0, therefore we cannot show intermediate results.
 
 ### Time measurements
 
-| N | sequential [s] | 8pernode 8 [s] |
+We where not able to measure results with other parallel environments than `8perhost 8`, because they all end up in a deadlock.
+
+| N | sequential [s] | 8perhost 8 [s] |
 | -: | -: | -: |
 | 500 | 1.91016 | 0.571594 |
 | 1000 | 6.1721 | 1.40361 |
