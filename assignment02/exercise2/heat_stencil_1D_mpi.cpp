@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
       double left_temp;
       double right_temp;
 
-      // calclate left temp
+      // calculate left temp
       if (i == 0) {
         if (rank_id == 0) {
           left_temp = current_temp;
