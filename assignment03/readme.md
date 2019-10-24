@@ -12,6 +12,15 @@ This exercise consists in extending the heat stencil application of Assignment 2
 - Provide sequential and MPI implementations and run them with multiple problem and machine sizes.
 - How can you verify the correctness of your applications?
 
+
+### Sequential versions of 2D and 3D heat stencils
+
+The update function of the 2D version was influenced by:
+
+* https://www5.in.tum.de/forschung/simlab/course2010_files/course_mat/2010-10-04-gatzhammer-SimLabIterative.pdf slide 14, and
+* https://github.com/allscale/allscale_api/wiki/HeatStencil
+
+
 ## Exercise 2
 
 This exercise consists in measuring all heat stencil variants (1D, 2D and 3D) to get a grasp of their performance behavior.
