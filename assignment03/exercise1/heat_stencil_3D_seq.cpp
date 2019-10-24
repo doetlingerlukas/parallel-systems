@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 50;
+  auto T = N * 2;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << "*" << N << " for T=" << T << " timesteps." << endl;
 
   // init matrix of size N*N
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
       A[i].resize(N);
       B[i].resize(N);
       for (auto j = 0; j < N; j++){
-		A[i][j].resize(N, 273);
+		    A[i][j].resize(N, 273);
         B[i][j].resize(N, 273);
       }
   }
@@ -54,24 +54,18 @@ int main(int argc, char **argv) {
 
             auto temp = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
             B[i][j][k] = temp;
+
           }
+  
       }
+  
     }
 
     // swap matrices (just pointers, not content)
     swap(A, B);
   }
 
-  //printTemperature(A, N);
-    for (auto i = 0; i < N; i++) {
-        for (auto j = 0; j < N; j++) {
-            for (auto k = 0; k < N; k++){
-                cout << A[i][j][k] << " ";         
-            }
-        }
-        cout << endl << endl;;
-    }
-    cout << endl;
+  printTemperature(A, N);
 
   return EXIT_SUCCESS;
 }
@@ -98,7 +92,7 @@ void printTemperature(vector<vector<vector<double>>> m, int N) {
   cout << "|";
   
   for (auto i = 0; i < N; i++){
-    for (auto j = 0; j < W; j++) {
+    for (auto j = 0; j < N; j++) {
         for (auto k = 0; k < W; k++){
             double max_t = 0;
             for (auto x = sW * k; x < sW * k + sW; x++) {
