@@ -1,21 +1,17 @@
-CC = mpic++
 CPP = g++
 CPP_FLAGS = -g -std=c++11 -Wall -Wextra -pedantic
 
-TARGETS = heat_stencil_2D_seq
+TARGETS = heat_stencil_2D_seq heat_stencil_3D_seq
 
 .PHONEY: seq
-seq: pi_seq
+seq: heat_2D_seq heat_3D_seq
 
-pi_seq: heat_stencil_2D_seq.cpp
+heat_2D_seq: heat_stencil_2D_seq.cpp
 	$(CPP) $(CPP_FLAGS) $< -o heat_stencil_2D_seq
+
+heat_3D_seq: heat_stencil_3D_seq.cpp
+	$(CPP) $(CPP_FLAGS) $< -o heat_stencil_3D_seq
 
 .PHONEY: clean
 clean:
 	$(RM) $(TARGETS)
-
-.PHONEY: run
-run: heat_stencil_2D_seq
-	@echo "Sequential:"
-	@./heat_stencil_2D_seq
-	@echo
