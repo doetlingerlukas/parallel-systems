@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 
+#define RESOLUTION 80
+
 using namespace std;
 
 void printTemperature(vector<vector<double>> m, int N);
@@ -69,7 +71,11 @@ void printTemperature(vector<vector<double>> m, int N) {
   const double min = 0;
 
   // set the 'render' resolution
-  int W = N;
+  int W = RESOLUTION;
+  if (N < RESOLUTION){
+    W = N;
+  }
+
 
   // step size in each dimension
   int sW = N / W;
@@ -80,9 +86,8 @@ void printTemperature(vector<vector<double>> m, int N) {
     for (auto j = 0; j < W; j++) {
       
       double max_t = 0;
-      for (int x = sW * j; x < sW * j + sW; x++) {
-        auto current = m[i][j];
-        max_t = (max_t < current) ? m[i][j] : max_t;
+      for (auto x = sW * j; x < sW * j + sW; x++) {
+        max_t = (max_t < m[i][j]) ? m[i][j] : max_t;
       }
       double temp = max_t;
 
