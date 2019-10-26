@@ -52,7 +52,6 @@ int main(int argc, char **argv) {
       cout << "Step t= " << t << endl;
       printTemperature(A, N);
       cout << endl << endl;
-      cout << A[10][10] << " " << A[50][50] << endl;
     }
 
     // swap matrices (just pointers, not content)
