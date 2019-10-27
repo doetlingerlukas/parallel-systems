@@ -56,14 +56,15 @@ int main(int argc, char **argv) {
   }
 
 
-  auto source_x = N/4;
-  auto source_y = N/4;
+  auto source_x = N/number_ranks*2;
+  auto source_y = N/number_ranks*2;
   bool contains_source = rank_id == (source_x / N_rank) && (source_y / N_rank);
   auto source_index_x = source_x % N_rank;
   auto source_index_y = source_y % N_rank;
 
   if (contains_source) {
     rank_buffer[source_index_x][source_index_y] = 273 + 60;
+    cout << rank_id << " " << rank_buffer[source_index_x][source_index_y] << endl;
   }
 
   for (auto t = 0; t < T; t++) { // iterate timesteps
@@ -113,6 +114,7 @@ int main(int argc, char **argv) {
         }
 
         rank_swap_buffer[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));  
+        //cout << rank_swap_buffer[0][0] << endl;
       }
     }
     
@@ -146,8 +148,6 @@ int main(int argc, char **argv) {
           result[x_start+i][y_start+j] = A[i+j];
         }
       }
-
-      //printTemperature(A, N_rank);
     }
     //add rank 0 results
     int coord[2];
@@ -168,6 +168,8 @@ int main(int argc, char **argv) {
         }
         cout << endl;
     }
+
+    //printTemperature(result, N);
   } else { // send rank_buffer to rank 0
     MPI_Send(rank_buffer, 1, rank_subarray, 0, TO_MAIN, comm_2d);
     cout << "rank " << rank_id << " sended subarray" << endl;
