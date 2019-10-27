@@ -48,10 +48,10 @@ int main(int argc, char **argv) {
   // init matrix 
   double** rank_buffer = new double*[N_rank];
   double** rank_swap_buffer = new double*[N_rank];
-  for (auto i = 0; i<N_rank; i++){
+  for (auto i = 0; i < N_rank; i++){
     rank_buffer[i] = new double[N_rank];
     rank_swap_buffer[i] = new double[N_rank];
-    for (auto j = 0; j<N_rank; j++){
+    for (auto j = 0; j < N_rank; j++){
       rank_buffer[i][j] = 273.0;
       rank_swap_buffer[i][j] = 273.0;
     }
@@ -124,20 +124,34 @@ int main(int argc, char **argv) {
     
   }
 
-  // result array
-  double** A = new double*[N];
-  for (auto i = 0; i < N; i++){
-    A[i] = new double[N];
-    for (auto j = 0; j < N; j++){
-      A[i][j] = 0.0;
+ 
+  MPI_Datatype rank_subarray;
+  int sizes[2]    = {N_rank, N_rank};
+  int subsizes[2] = {N_rank, N_rank}; 
+  int starts[2] = {0, 0}; 
+  MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_DOUBLE, &rank_subarray);
+  MPI_Type_commit(&rank_subarray);
+
+  if (rank_id == 0){
+    for (auto i = 0; i < number_ranks; i++){
+      // result array
+      double** A = new double*[N_rank];
+      for (auto i = 0; i < N_rank; i++){
+        A[i] = new double[N_rank];
+        for (auto j = 0; j < N_rank; j++){
+          A[i][j] = 0.0;
+        }
+      }
+      cout << "rank " << i << ": " << endl;
+      MPI_Recv(A, N_rank*N_rank, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
+
+      // TODO merge arrays of size N_rank*N_rank in one array of size N*N
+
+      printTemperature(A, N);
     }
+  } else {
+    MPI_Send(rank_buffer, 1, rank_subarray, 0, TO_MAIN, comm_2d);
   }
-
-  // gather array on rank 0
-  MPI_Gather(rank_buffer, N_rank * N_rank, MPI_DOUBLE, A, N * N, MPI_DOUBLE, 0, comm_2d);
-
-  // print final result
-  //printTemperature(A, N);
 
   MPI_Finalize();
   return EXIT_SUCCESS;
