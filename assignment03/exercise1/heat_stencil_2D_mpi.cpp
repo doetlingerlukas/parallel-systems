@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 100;
+  auto T = N * 10;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << T << " timesteps." << endl;
 
   int rank_id, number_ranks; 
@@ -43,19 +43,18 @@ int main(int argc, char **argv) {
 	MPI_Cart_shift(comm_2d, 1, 1, &upper, &lower);
 
   // split problem size among ranks
-  auto N_rank = N / number_ranks;
+  auto N_rank = N / (number_ranks / 2);
 
   // init matrix 
-  double** rank_buffer = new double*[N_rank];
-  double** rank_swap_buffer = new double*[N_rank];
-  for (auto i = 0; i < N_rank; i++){
-    rank_buffer[i] = new double[N_rank];
-    rank_swap_buffer[i] = new double[N_rank];
-    for (auto j = 0; j < N_rank; j++){
-      rank_buffer[i][j] = 273.0;
-      rank_swap_buffer[i][j] = 273.0;
-    }
+  double rank_buffer[12][12];
+  double rank_swap_buffer[12][12];
+  for(int i = 0; i < 12; i++){
+      for(int j = 0; j < 12; j++){
+          rank_buffer[i][j] = 273.0;
+          rank_swap_buffer[i][j] = 273.0;
+      }
   }
+
 
   auto source_x = N/4;
   auto source_y = N/4;
@@ -118,10 +117,7 @@ int main(int argc, char **argv) {
     }
     
     // swap matrices (just pointers, not content)
-    double **swap = rank_buffer;
-    rank_buffer = rank_swap_buffer;
-    rank_swap_buffer = swap;
-    
+    swap(rank_buffer, rank_swap_buffer);
   }
 
  
@@ -134,16 +130,9 @@ int main(int argc, char **argv) {
 
   if (rank_id == 0){ // collect rank_buffers from all nodes
     for (auto i = 1; i < number_ranks; i++){
-      // result array
-      double** A = new double*[N_rank];
-      for (auto j = 0; j < N_rank; j++){
-        A[j] = new double[N_rank];
-        for (auto k = 0; k < N_rank; k++){
-          A[j][k] = 0.0;
-        }
-      }
-      MPI_Recv(A, N_rank*N_rank, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
-      cout << "received subarray from rank " << i <<  endl;
+      
+      double A[144] = {0.0}; // hard coded for 4 ranks
+      MPI_Recv(&A, N_rank * N_rank, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
 
       // TODO merge arrays of size N_rank*N_rank in one array of size N*N
 
