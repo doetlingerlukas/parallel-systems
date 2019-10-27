@@ -17,7 +17,7 @@ void printTemperature(double **m, int N);
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 48; // has to be devisable by 4
+  auto N = 24; // has to be devisable by 4
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -132,25 +132,26 @@ int main(int argc, char **argv) {
   MPI_Type_create_subarray(2, sizes, subsizes, starts, MPI_ORDER_C, MPI_DOUBLE, &rank_subarray);
   MPI_Type_commit(&rank_subarray);
 
-  if (rank_id == 0){
-    for (auto i = 0; i < number_ranks; i++){
+  if (rank_id == 0){ // collect rank_buffers from all nodes
+    for (auto i = 1; i < number_ranks; i++){
       // result array
       double** A = new double*[N_rank];
-      for (auto i = 0; i < N_rank; i++){
-        A[i] = new double[N_rank];
-        for (auto j = 0; j < N_rank; j++){
-          A[i][j] = 0.0;
+      for (auto j = 0; j < N_rank; j++){
+        A[j] = new double[N_rank];
+        for (auto k = 0; k < N_rank; k++){
+          A[j][k] = 0.0;
         }
       }
-      cout << "rank " << i << ": " << endl;
       MPI_Recv(A, N_rank*N_rank, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
+      cout << "received subarray from rank " << i <<  endl;
 
       // TODO merge arrays of size N_rank*N_rank in one array of size N*N
 
-      printTemperature(A, N);
+      //printTemperature(A, N_rank);
     }
-  } else {
+  } else { // send rank_buffer to rank 0
     MPI_Send(rank_buffer, 1, rank_subarray, 0, TO_MAIN, comm_2d);
+    cout << "rank " << rank_id << " sended subarray" << endl;
   }
 
   MPI_Finalize();
