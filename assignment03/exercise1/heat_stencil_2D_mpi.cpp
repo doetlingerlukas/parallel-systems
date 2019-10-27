@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 20;
+  auto T = N * 100;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << T << " timesteps." << endl;
 
   int rank_id, number_ranks; 
@@ -71,6 +71,11 @@ int main(int argc, char **argv) {
   for (auto t = 0; t < T; t++) { // iterate timesteps
     for (auto i = 0; i < N_rank; i++) { // iterate rows
       for (auto j = 0; j < N_rank; j++) { // iterate columns
+
+        if (i == source_index_x && j == source_index_y) {
+            rank_swap_buffer[i][j] = rank_buffer[i][j];
+            continue;
+        }
         
         auto t_current = rank_buffer[i][j];
         auto t_upper = (i != 0) ? rank_buffer[i - 1][j] : t_current;
@@ -109,13 +114,7 @@ int main(int argc, char **argv) {
           MPI_Recv(&t_upper, 1, MPI_DOUBLE, upper, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
         }
 
-        if (i == source_x && j == source_y) {
-            rank_swap_buffer[i][j] = rank_buffer[i][j];
-            continue;
-        }
-
         rank_swap_buffer[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));  
-        //cout << rank_swap_buffer[0][0] << endl;
       }
     }
     
@@ -147,7 +146,6 @@ int main(int argc, char **argv) {
       for (auto i = 0; i < N_rank; i++) { // iterate rows
         for (auto j = 0; j < N_rank; j++) { // iterate columns
           result[x_start+i][y_start+j] = A[i+j];
-          //cout << A[i+j] << endl;
         }
       }
     }
