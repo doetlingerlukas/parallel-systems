@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <mpi.h>
+#include <stdio.h> 
 
 #define RESOLUTION 80
 
@@ -12,7 +13,7 @@ const static int TO_MAIN = 4;
 
 using namespace std;
 
-void printTemperature(double **m, int N);
+void printTemperature(double *m, int N);
 
 int main(int argc, char **argv) {
 
@@ -21,7 +22,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 10;
+  auto T = N * 20;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << T << " timesteps." << endl;
 
   int rank_id, number_ranks; 
@@ -146,6 +147,7 @@ int main(int argc, char **argv) {
       for (auto i = 0; i < N_rank; i++) { // iterate rows
         for (auto j = 0; j < N_rank; j++) { // iterate columns
           result[x_start+i][y_start+j] = A[i+j];
+          //cout << A[i+j] << endl;
         }
       }
     }
@@ -169,7 +171,7 @@ int main(int argc, char **argv) {
         cout << endl;
     }
 
-    //printTemperature(result, N);
+    printTemperature((double *)result, N);
   } else { // send rank_buffer to rank 0
     MPI_Send(rank_buffer, 1, rank_subarray, 0, TO_MAIN, comm_2d);
     cout << "rank " << rank_id << " sended subarray" << endl;
@@ -180,7 +182,7 @@ int main(int argc, char **argv) {
 }
 
 
-void printTemperature(double **m, int N) {
+void printTemperature(double *m, int N) {
   const char *colors = " .-:=+*^X#%@";
   const int numColors = 12;
 
@@ -217,7 +219,7 @@ void printTemperature(double **m, int N) {
       double max_t = 0;
       for (auto x = sH * i; x < sH * i + sH; x++) {
         for (auto y = sW * j; y < sW * j + sW; y++) {
-          max_t = (max_t < m[x][y]) ? m[x][y] : max_t;
+          max_t = (max_t < *((m+i*N) + j)) ? *((m+i*N) + j) : max_t;
         }
       }
       double temp = max_t;
