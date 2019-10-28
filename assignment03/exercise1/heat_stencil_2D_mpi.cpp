@@ -97,6 +97,11 @@ int main(int argc, char **argv) {
       MPI_Recv(&upper_buffer[0], N_rank, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
     }
 
+    // recieve from lower
+    if (lower >= 0) {
+      MPI_Recv(&lower_buffer[0], N_rank, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
+    }
+
     // iterate over rows
     for (auto i = 0; i < N_rank; i++) { 
 
@@ -111,11 +116,6 @@ int main(int argc, char **argv) {
         MPI_Request req;
         MPI_Isend(&buffer[i][N_rank - 1], 1, MPI_DOUBLE, right, TO_RIGHT, comm_2d, &req);
         MPI_Request_free(&req);
-      }
-
-      // recieve from lower
-      if ((lower >= 0) && (i == N_rank - 1)) {
-        MPI_Recv(&lower_buffer[0], N_rank, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
       }
 
       // iterate over columns
@@ -141,13 +141,13 @@ int main(int argc, char **argv) {
         }
 
         auto t_upper = (i != 0) ? buffer[i - 1][j] : t_current;
-        if ((upper >= 0) && (j == 0)) {
-          t_upper = upper_buffer[i];
+        if ((upper >= 0) && (i == 0)) {
+          t_upper = upper_buffer[j];
         }
 
         auto t_lower = (i != N_rank - 1) ? buffer[i + 1][j] : t_current;
-        if ((lower >= 0) && (j == N_rank - 1)) {
-          t_lower = lower_buffer[i];
+        if ((lower >= 0) && (i == N_rank - 1)) {
+          t_lower = lower_buffer[j];
         }
 
         swap_buffer[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));  
