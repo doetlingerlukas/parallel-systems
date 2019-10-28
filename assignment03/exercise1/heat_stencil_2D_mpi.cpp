@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <chrono>
 #include <mpi.h>
-#include <stdio.h> 
 
 #define RESOLUTION 80
 
@@ -24,7 +24,8 @@ int main(int argc, char **argv) {
     N = strtol(argv[1], nullptr, 10);
   }
   auto timesteps = N * 100;
-  cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << timesteps << " timesteps." << endl;
+
+  auto start_time = chrono::high_resolution_clock::now();
 
   int rank_id, amount_of_ranks; 
   MPI_Init(&argc, &argv);
@@ -32,6 +33,9 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &amount_of_ranks);
 
   if (fmod(sqrtf(amount_of_ranks), 1) != 0) {
+    if (rank_id == 0) {
+      cout <<  "Rank size must be a square number!" << endl;
+    }
     MPI_Finalize();
     return EXIT_FAILURE;
   }
@@ -48,18 +52,13 @@ int main(int argc, char **argv) {
 	int left, right, upper, lower;
 	MPI_Cart_shift(comm_2d, 0, 1, &left, &right);
 	MPI_Cart_shift(comm_2d, 1, 1, &upper, &lower);
-  cout << "rank: " << rank_id << "| left: " << left << "| right: " << right << "| upper: " << upper << "| lower: " << lower << endl;
 
   // Problem size for a single rank.
   auto chunk_size = N / ranks_per_row;
 
   // Buffers for computation.
-  vector<vector<double>> buffer(chunk_size);
-  vector<vector<double>> swap_buffer(chunk_size);
-  for (auto i = 0; i < chunk_size; i++){
-		buffer[i].resize(chunk_size, 273);
-    swap_buffer[i].resize(chunk_size, 273);
-  }
+  vector<vector<double>> buffer(chunk_size, vector<double>(chunk_size, 273));
+  vector<vector<double>> swap_buffer(chunk_size, vector<double>(chunk_size, 273));
 
   // Place heat source.
   int source = N / 4;
@@ -70,7 +69,6 @@ int main(int argc, char **argv) {
   
   if (rank_id == source_rank) {
     buffer[source_index][source_index] = 273 + 60;
-    cout << rank_id << " " << source_index << endl;
   }
 
 
@@ -157,13 +155,10 @@ int main(int argc, char **argv) {
 
   // Collect results.
   if (rank_id == 0){
+    vector<vector<double>> result(N, vector<double>(N));
+
     // Array to save coordinates.
     int coord[2];
-
-    vector<vector<double>> result(N);
-    for (auto i = 0; i < N; i++){
-		  result[i].resize(N);
-    }
     
     // Add buffers from ranks to result.
     for (auto i = 1; i < amount_of_ranks; i++){
@@ -171,7 +166,6 @@ int main(int argc, char **argv) {
       auto receive_size = chunk_size * chunk_size;
       vector<double> A(receive_size, 1);
       MPI_Recv(&A[0], receive_size, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
-      cout << A[0] << endl;
       
       MPI_Cart_coords(comm_2d, i, 2, coord);
 
@@ -192,6 +186,13 @@ int main(int argc, char **argv) {
     }
 
     printTemperature(result, N);
+
+    // Measure time.
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+    cout << endl;
+    cout << "This took " << duration << " seconds." << endl;
+
   } else { 
     // Send buffer to rank 0.
     auto send_size = chunk_size * chunk_size;
@@ -225,7 +226,6 @@ void printTemperature(vector<vector<double>> m, int N) {
     W = N;
     H = N;
   }
-
 
   // step size in each dimension
   int sW = N / W;
