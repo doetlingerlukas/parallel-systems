@@ -18,14 +18,20 @@ using namespace std;
 
 void printTemperature(vector<vector<vector<double>>> m, int N);
 
+vector<vector<double>> convert1dTo2d(vector<double> m, int N);
+
+vector<double> convert2dTo1d(vector<vector<double>> m, int N);
+
+vector<double> getColFrom2d(double** m, int N, int colnr);
+
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 32; // has to be divisable by 8
+  auto N = 64; // has to be divisable by 8
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 5;
+  auto T = N * 10;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << T << " timesteps." << endl;
 
   int rank_id, number_ranks; 
@@ -37,10 +43,10 @@ int main(int argc, char **argv) {
     MPI_Finalize();
     return EXIT_FAILURE;
   }
-  int ranks_per_row = cbrt(number_ranks);
+  int cube_size_per_rank = cbrt(number_ranks);
 
   // set up grid
-  int dims[3] = {ranks_per_row, ranks_per_row, ranks_per_row};
+  int dims[3] = {cube_size_per_rank, cube_size_per_rank, cube_size_per_rank};
 	int periods[3] = {0, 0, 0};
   MPI_Comm comm_3d;
   MPI_Dims_create(number_ranks, 3, dims); 
@@ -55,15 +61,15 @@ int main(int argc, char **argv) {
   cout << "rank: " << rank_id << "| left: " << left << "| right: " << right << "| upper: " << upper << "| lower: " << lower << "| before: " << before << "| behind: " << behind << endl;
 
   // split problem size among ranks
-  auto N_rank = N / ranks_per_row;
+  auto N_rank = N / cube_size_per_rank;
 
   // init rank buffer
   vector<vector<vector<double>>> buffer(N_rank);
   vector<vector<vector<double>>> swap_buffer(N_rank);
-  for (auto i = 0; i < N; i++){
+  for (auto i = 0; i < N_rank; i++){
       buffer[i].resize(N_rank);
       swap_buffer[i].resize(N_rank);
-      for (auto j = 0; j < N; j++){
+      for (auto j = 0; j < N_rank; j++){
 		    buffer[i][j].resize(N_rank, 273);
         swap_buffer[i][j].resize(N_rank, 273);
       }
@@ -83,92 +89,92 @@ int main(int argc, char **argv) {
 
 
   // ---------- compute -------------
-  vector<double> upper_buffer(N_rank);
-  vector<double> lower_buffer(N_rank);
+  vector<vector<double>> upper_buffer(N_rank);
+  vector<vector<double>> lower_buffer(N_rank);
+  for(auto i=0; i < N_rank; i++){
+    upper_buffer[i].resize(N_rank, 273);
+    lower_buffer[i].resize(N_rank, 273);
+  }
 
-  /*
-  for (auto t = 0; t < T; t++) { 
+  for (auto t = 0; t < T; t++) { // iterate timesteps
 
     // send to lower
     if (lower >= 0) {
       MPI_Request req;
-      MPI_Isend(&buffer[N_rank-1][0], N_rank, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
+      MPI_Isend(&buffer[0][0][0], N_rank*N_rank, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
       MPI_Request_free(&req);
     }
     // send to upper and recieve from upper
     if (upper >= 0) {
       MPI_Request req;
-      MPI_Isend(&buffer[0][0], N_rank, MPI_DOUBLE, upper, TO_UPPER, comm_3d, &req);
+      MPI_Isend(&buffer[0][0][N_rank-1], N_rank*N_rank, MPI_DOUBLE, upper, TO_UPPER, comm_3d, &req);
       MPI_Request_free(&req);
 
-      MPI_Recv(&upper_buffer[0], N_rank, MPI_DOUBLE, upper, TO_LOWER, comm_3d, MPI_STATUS_IGNORE);
+      vector<double> temp(N_rank*N_rank, 273);
+      MPI_Recv(&temp[0], N_rank*N_rank, MPI_DOUBLE, lower, TO_UPPER, comm_3d, MPI_STATUS_IGNORE);
+      lower_buffer = convert1dTo2d(temp, N_rank);
     }
 
-    // recieve from lower
     if (lower >= 0) {
-      MPI_Recv(&lower_buffer[0], N_rank, MPI_DOUBLE, lower, TO_UPPER, comm_3d, MPI_STATUS_IGNORE);
-    }
-
-    // iterate over rows
-    for (auto i = 0; i < N_rank; i++) { 
-
-      // send first element of current row to left neighbour
-      if (left >= 0) {
-        MPI_Request req;
-        MPI_Isend(&buffer[i][0], 1, MPI_DOUBLE, left, TO_LEFT, comm_3d, &req);
-        MPI_Request_free(&req);
-      }
-      // send last element of current row to right neigbour
-      if (right >= 0) {
-        MPI_Request req;
-        MPI_Isend(&buffer[i][N_rank - 1], 1, MPI_DOUBLE, right, TO_RIGHT, comm_3d, &req);
-        MPI_Request_free(&req);
-      }
-
-      // iterate over columns
-      for (auto j = 0; j < N_rank; j++) {
-
-        if (rank_id == source_rank && (i == source_index && j == source_index)) {
-            swap_buffer[i][j] = buffer[i][j];
-            continue;
-        }
-        
-        auto t_current = buffer[i][j];
-        
-        auto t_left = (j != 0) ? buffer[i][j - 1] : t_current;
-        auto t_right = (j != N_rank - 1) ? buffer[i][j + 1] : t_current;
-
-        // recieve from left
-        if ((left >= 0) && (j == 0)) {
-          MPI_Recv(&t_left, 1, MPI_DOUBLE, left, TO_RIGHT, comm_3d, MPI_STATUS_IGNORE);
-        }
-        // recieve from right
-        if ((right >= 0) && (j == N_rank - 1)) { 
-          MPI_Recv(&t_right, 1, MPI_DOUBLE, right, TO_LEFT, comm_3d, MPI_STATUS_IGNORE);
-        }
-
-        auto t_upper = (i != 0) ? buffer[i - 1][j] : t_current;
-        if ((upper >= 0) && (i == 0)) {
-          t_upper = upper_buffer[j];
-        }
-
-        auto t_lower = (i != N_rank - 1) ? buffer[i + 1][j] : t_current;
-        if ((lower >= 0) && (i == N_rank - 1)) {
-          t_lower = lower_buffer[j];
-        }
-
-        swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
-      }
+      vector<double> temp(N_rank*N_rank, 273);
+      MPI_Recv(&temp[0], N_rank*N_rank, MPI_DOUBLE, upper, TO_LOWER, comm_3d, MPI_STATUS_IGNORE);
+      upper_buffer = convert1dTo2d(temp, N_rank);
     }
     
+
+    for (auto k = 0; k < N; k++) {
+
+      vector<double> left_buffer(N_rank);
+      vector<double> right_buffer(N_rank);
+      
+      // send left
+      if (left >= 0) {
+        MPI_Request req;
+        vector<double> col = getColFrom2d(&buffer[0][0][k], N_rank, N_rank-1);
+        MPI_Isend(&col[0], N_rank, MPI_DOUBLE, left, TO_LEFT, comm_3d, &req);
+        MPI_Request_free(&req);
+      }
+      // send right
+      if (right >= 0) {
+        MPI_Request req;
+        vector<double> col = getColFrom2d(&buffer.at(k), N_rank, 0);
+        MPI_Isend(&col[0], N_rank, MPI_DOUBLE, right, TO_RIGHT, comm_3d, &req);
+        MPI_Request_free(&req);
+      }
+
+      for (auto j = 0; j < N; j++) {
+
+        // send behind/before
+
+          for (auto i = 0; i < N; i++){
+            if (i == source_x && j == source_y && k == source_z) {
+                B[i][j][k] = A[i][j][k];
+                continue;
+            }
+
+            auto t_current = A[i][j][k];
+
+            auto t_upper = (i != 0) ? A[i - 1][j][k] : t_current;
+            auto t_lower = (i != N - 1) ? A[i + 1][j][k] : t_current;
+            auto t_left = (j != 0) ? A[i][j - 1][k] : t_current;
+            auto t_right = (j != N - 1) ? A[i][j + 1][k] : t_current;
+            auto t_before = (k != 0) ? A[i][j][k - 1] : t_current;
+            auto t_behind = (k != N - 1) ? A[i][j][k + 1] : t_current;
+
+            // receives
+
+            swap_buffer[i][j][k] = swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
+          }
+      }
+    }
     // swap matrices (just pointers, not content)
     swap(buffer, swap_buffer);
-  }*/
+  }
   
-  cout << "-----------------------------" << endl;
+  /*cout << "-----------------------------" << endl;
   cout << "rank id " << rank_id << endl;
   printTemperature(buffer, N_rank);
-  cout << "-----------------------------" << endl;
+  cout << "-----------------------------" << endl;*/
   
   /*
   MPI_Datatype rank_subarray;
@@ -236,6 +242,42 @@ int main(int argc, char **argv) {
 
   MPI_Finalize();
   return EXIT_SUCCESS;
+}
+
+vector<double> convert2dTo1d(vector<vector<double>> m, int N){
+  auto send_size = N * N;
+
+  vector<double> result(N);
+  for (auto i = 0; i < N; i++) {
+    for (auto j = 0; j < N; j++) {
+      result.push_back(m[i][j]);
+    }
+  }
+
+  return result;
+}
+
+vector<vector<double>> convert1dTo2d(vector<double> m, int N){
+  vector<vector<double>> result(N);
+  for (auto i = 0; i < N; i++) { // iterate rows
+    result[i].resize(N);
+    for (auto j = 0; j < N; j++) { // iterate columns
+      result[i][j] = m[j + i * N];
+    }
+  }
+  return result;
+}
+
+vector<double> getColFrom2d(double** m, int N, int colnr){
+  vector<double> result(N);
+  for (auto i = 0; i < N; i++) { // iterate rows
+    for (auto j = 0; j < N; j++) { // iterate columns
+      if (j == colnr){
+        result.push_back(m[i][j]);
+      }
+    }
+  }
+  return result;
 }
 
 
