@@ -14,7 +14,7 @@ const static int TO_MAIN = 4;
 
 using namespace std;
 
-void printTemperature(double *m, int N);
+void printTemperature(vector<vector<double>> m, int N);
 
 int main(int argc, char **argv) {
 
@@ -32,13 +32,14 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &number_ranks);
 
   if (fmod(sqrtf(number_ranks), 1) != 0) {
+    MPI_Finalize();
     return EXIT_FAILURE;
   }
   int ranks_per_row = sqrt(number_ranks);
 
   // set up grid
   int dims[2] = {ranks_per_row, ranks_per_row};
-	int periods[2] = {1, 1}; // to avoid too many edge cases in code
+	int periods[2] = {0, 0}; // to avoid too many edge cases in code
   //int mycoords[2];
   MPI_Comm comm_2d;
   MPI_Dims_create(number_ranks, 2, dims); 
@@ -48,6 +49,8 @@ int main(int argc, char **argv) {
 	int left, right, upper, lower;
 	MPI_Cart_shift(comm_2d, 0, 1, &left, &right);
 	MPI_Cart_shift(comm_2d, 1, 1, &upper, &lower);
+
+  cout << "rank: " << rank_id << "| left: " << left << "| right: " << right << "| upper: " << upper << "| lower: " << lower << endl;
 
   // split problem size among ranks
   auto N_rank = N / ranks_per_row;
@@ -62,14 +65,14 @@ int main(int argc, char **argv) {
 
   // source
   int source = N / 4;
-  int source_coords[2] = {(source / ranks_per_row), (source / ranks_per_row)};
+  int source_coords[2] = {(source / N_rank), (source / N_rank)};
   int source_rank;
   MPI_Cart_rank(comm_2d, source_coords, &source_rank);
   auto source_index = source % N_rank;
 
   if (rank_id == source_rank) {
     buffer[source_index][source_index] = 273 + 60;
-    cout << rank_id << " " << buffer[source_index][source_index] << endl;
+    cout << rank_id << " " << source_index << endl;
   }
 
 
@@ -118,7 +121,7 @@ int main(int argc, char **argv) {
       // iterate over columns
       for (auto j = 0; j < N_rank; j++) {
 
-        if (i == source_index && j == source_index) {
+        if (rank_id == source_rank && (i == source_index && j == source_index)) {
             swap_buffer[i][j] = buffer[i][j];
             continue;
         }
@@ -138,12 +141,12 @@ int main(int argc, char **argv) {
         }
 
         auto t_upper = (i != 0) ? buffer[i - 1][j] : t_current;
-        if (j == 0) {
+        if ((upper >= 0) && (j == 0)) {
           t_upper = upper_buffer[i];
         }
 
         auto t_lower = (i != N_rank - 1) ? buffer[i + 1][j] : t_current;
-        if (j == N_rank - 1) {
+        if ((lower >= 0) && (j == N_rank - 1)) {
           t_lower = lower_buffer[i];
         }
 
@@ -154,6 +157,12 @@ int main(int argc, char **argv) {
     // swap matrices (just pointers, not content)
     swap(buffer, swap_buffer);
   }
+
+  cout << "-----------------------------" << endl;
+  cout << "rank id " << rank_id << endl;
+  printTemperature(buffer, N_rank);
+  cout << "-----------------------------" << endl;
+  
  
   MPI_Datatype rank_subarray;
   int sizes[2]    = {N_rank, N_rank};
@@ -163,11 +172,11 @@ int main(int argc, char **argv) {
   MPI_Type_commit(&rank_subarray);
 
   if (rank_id == 0){ // collect rank_buffers from all nodes
-    double result[N][N] = {0.0};
+    vector<vector<double>> result(N);
     for (auto i = 1; i < number_ranks; i++){
       
-      double A[N*N] = {0.0};
-      MPI_Recv(&A, N_rank * N_rank, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
+      vector<double> A(N_rank * N_rank);
+      MPI_Recv(&A[0], N_rank * N_rank, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
 
       // TODO merge arrays of size N_rank*N_rank in one array of size N*N
       int coord[2];
@@ -196,9 +205,17 @@ int main(int argc, char **argv) {
     }
     
 
-    printTemperature((double *)result, N);
-  } else { // send rank_buffer to rank 0
-    MPI_Send(buffer.data(), 1, rank_subarray, 0, TO_MAIN, comm_2d);
+    printTemperature(result, N);
+  } else { 
+    // send rank_buffer to rank 0
+    vector<double> to_send(N_rank*N_rank);
+    for (auto i = 0; i < N_rank; i++) {
+      for (auto j = 0; j < N_rank; j++) {
+        to_send.push_back(buffer[i][j]);
+      }
+    }
+
+    MPI_Send(&to_send[0], N_rank * N_rank, MPI_DOUBLE, 0, TO_MAIN, comm_2d);
     cout << "rank " << rank_id << " sended subarray" << endl;
   }
 
@@ -207,7 +224,7 @@ int main(int argc, char **argv) {
 }
 
 
-void printTemperature(double *m, int N) {
+void printTemperature(vector<vector<double>> m, int N) {
   const char *colors = " .-:=+*^X#%@";
   const int numColors = 12;
 
@@ -244,7 +261,7 @@ void printTemperature(double *m, int N) {
       double max_t = 0;
       for (auto x = sH * i; x < sH * i + sH; x++) {
         for (auto y = sW * j; y < sW * j + sW; y++) {
-          max_t = (max_t < *((m+i*N) + j)) ? *((m+i*N) + j) : max_t;
+          max_t = (max_t < m[x][y]) ? m[x][y] : max_t;
         }
       }
       double temp = max_t;
