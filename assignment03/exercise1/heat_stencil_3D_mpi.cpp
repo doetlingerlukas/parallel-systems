@@ -315,6 +315,14 @@ int main(int argc, char **argv) {
   }
   
 
+  if(rank_id==0){
+    cout << "-----------------------------" << endl;
+    cout << "rank id " << rank_id << endl;
+    printTemperature(buffer, N_rank);
+    cout << "-----------------------------" << endl;
+  }
+  
+
   MPI_Finalize();
   return EXIT_SUCCESS;
 }
