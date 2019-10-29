@@ -22,7 +22,7 @@ vector<vector<double>> convert1dTo2d(vector<double> m, int N);
 
 vector<double> convert2dTo1d(vector<vector<double>> m, int N);
 
-vector<double> getColFrom2d(double** m, int N, int colnr);
+vector<double> getColFrom3dAtk(vector<vector<vector<double>>> m, int k, int N, int colnr);
 
 int main(int argc, char **argv) {
 
@@ -130,14 +130,14 @@ int main(int argc, char **argv) {
       // send left
       if (left >= 0) {
         MPI_Request req;
-        vector<double> col = getColFrom2d(&buffer[0][0][k], N_rank, N_rank-1);
+        vector<double> col = getColFrom3dAtk(buffer, k, N_rank, N_rank-1);
         MPI_Isend(&col[0], N_rank, MPI_DOUBLE, left, TO_LEFT, comm_3d, &req);
         MPI_Request_free(&req);
       }
       // send right
       if (right >= 0) {
         MPI_Request req;
-        vector<double> col = getColFrom2d(&buffer.at(k), N_rank, 0);
+        vector<double> col = getColFrom3dAtk(buffer, k, N_rank, 0);
         MPI_Isend(&col[0], N_rank, MPI_DOUBLE, right, TO_RIGHT, comm_3d, &req);
         MPI_Request_free(&req);
       }
@@ -147,23 +147,24 @@ int main(int argc, char **argv) {
         // send behind/before
 
           for (auto i = 0; i < N; i++){
-            if (i == source_x && j == source_y && k == source_z) {
-                B[i][j][k] = A[i][j][k];
-                continue;
+
+            if (rank_id == source_rank && (i == source_index && j == source_index && source_index == k)) {
+              swap_buffer[i][j][k] = buffer[i][j][k];
+              continue;
             }
 
-            auto t_current = A[i][j][k];
+            auto t_current = buffer[i][j][k];
 
-            auto t_upper = (i != 0) ? A[i - 1][j][k] : t_current;
-            auto t_lower = (i != N - 1) ? A[i + 1][j][k] : t_current;
-            auto t_left = (j != 0) ? A[i][j - 1][k] : t_current;
-            auto t_right = (j != N - 1) ? A[i][j + 1][k] : t_current;
-            auto t_before = (k != 0) ? A[i][j][k - 1] : t_current;
-            auto t_behind = (k != N - 1) ? A[i][j][k + 1] : t_current;
+            auto t_upper = (i != 0) ? buffer[i - 1][j][k] : t_current;
+            auto t_lower = (i != N - 1) ? buffer[i + 1][j][k] : t_current;
+            auto t_left = (j != 0) ? buffer[i][j - 1][k] : t_current;
+            auto t_right = (j != N - 1) ? buffer[i][j + 1][k] : t_current;
+            auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
+            auto t_behind = (k != N - 1) ? buffer[i][j][k + 1] : t_current;
 
             // receives
 
-            swap_buffer[i][j][k] = swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
+            swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
           }
       }
     }
@@ -245,8 +246,6 @@ int main(int argc, char **argv) {
 }
 
 vector<double> convert2dTo1d(vector<vector<double>> m, int N){
-  auto send_size = N * N;
-
   vector<double> result(N);
   for (auto i = 0; i < N; i++) {
     for (auto j = 0; j < N; j++) {
@@ -268,12 +267,12 @@ vector<vector<double>> convert1dTo2d(vector<double> m, int N){
   return result;
 }
 
-vector<double> getColFrom2d(double** m, int N, int colnr){
+vector<double> getColFrom3dAtk(vector<vector<vector<double>>> m, int k, int N, int colnr){
   vector<double> result(N);
   for (auto i = 0; i < N; i++) { // iterate rows
     for (auto j = 0; j < N; j++) { // iterate columns
       if (j == colnr){
-        result.push_back(m[i][j]);
+        result.push_back(m[i][j][k]);
       }
     }
   }
