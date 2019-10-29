@@ -123,9 +123,6 @@ int main(int argc, char **argv) {
     
 
     for (auto k = 0; k < N; k++) {
-
-      vector<double> left_buffer(N_rank);
-      vector<double> right_buffer(N_rank);
       
       // send left
       if (left >= 0) {
@@ -143,9 +140,6 @@ int main(int argc, char **argv) {
       }
 
       for (auto j = 0; j < N; j++) {
-
-        vector<double> behind_buffer(N_rank);
-        vector<double> before_buffer(N_rank);
         
         // send behind
         if (behind >= 0) {
@@ -176,7 +170,22 @@ int main(int argc, char **argv) {
           auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
           auto t_behind = (k != N - 1) ? buffer[i][j][k + 1] : t_current;
 
-          // receives
+          vector<double> left_buffer(N_rank);
+          vector<double> right_buffer(N_rank);
+
+          // recieve from left
+          if ((left >= 0) && (j == 0)) {
+            MPI_Recv(&t_left, 1, MPI_DOUBLE, left, TO_RIGHT, comm_2d, MPI_STATUS_IGNORE);
+          }
+          // recieve from right
+          if ((right >= 0) && (j == N_rank - 1)) { 
+            MPI_Recv(&t_right, 1, MPI_DOUBLE, right, TO_LEFT, comm_2d, MPI_STATUS_IGNORE);
+          }
+
+          vector<double> behind_buffer(N_rank);
+          vector<double> before_buffer(N_rank);
+
+          // TODO receive from behind/before
 
           swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
         }
@@ -185,75 +194,6 @@ int main(int argc, char **argv) {
     // swap matrices (just pointers, not content)
     swap(buffer, swap_buffer);
   }
-  
-  /*cout << "-----------------------------" << endl;
-  cout << "rank id " << rank_id << endl;
-  printTemperature(buffer, N_rank);
-  cout << "-----------------------------" << endl;*/
-  
-  /*
-  MPI_Datatype rank_subarray;
-  int size[2]    = {N, N};
-  int subsize[2] = {N_rank, N_rank}; 
-  int start[2] = {0, 0}; 
-  MPI_Type_create_subarray(2, size, subsize, start, MPI_ORDER_C, MPI_DOUBLE, &rank_subarray);
-  MPI_Type_commit(&rank_subarray);
-
-  if (rank_id == 0){ // collect rank_buffers from all nodes
-    vector<vector<double>> result(N);
-    for (auto i = 0; i < N; i++){
-		  result[i].resize(N);
-    }
-    //vector<double> flat_result(N*N);
-    for (auto i = 1; i < number_ranks; i++){
-      
-      //MPI_Recv(&flat_result[0] + N_rank * i, (N_rank * N_rank), MPI_DOUBLE, i, TO_MAIN, comm_3d, MPI_STATUS_IGNORE);
-      auto recieve_size = N_rank * N_rank;
-      vector<double> A(recieve_size, 1);
-      MPI_Recv(&A[0], recieve_size, MPI_DOUBLE, i, TO_MAIN, comm_3d, MPI_STATUS_IGNORE);
-      cout << A[0] << endl;
-      
-      // TODO merge arrays of size N_rank*N_rank in one array of size N*N
-      int coord[2];
-      MPI_Cart_coords(comm_3d, i, 2, coord);
-
-      int x_start = coord[0];
-      int y_start = coord[1];
-
-      for (auto i = 0; i < N_rank; i++) { // iterate rows
-        for (auto j = 0; j < N_rank; j++) { // iterate columns
-          result[i + y_start * N_rank][j + x_start * N_rank] = A[j + i * N_rank];
-        }
-      }
-    }
-    //add rank 0 results
-    int coord[2];
-    MPI_Cart_coords(comm_3d, 0, 2, coord);
-
-    int x_start = coord[0];
-    int y_start = coord[1];
-
-    for (auto i = 0; i < N_rank; i++) { // iterate rows
-      for (auto j = 0; j < N_rank; j++) { // iterate columns
-        result[i + y_start * N_rank][j + x_start * N_rank] = buffer[i][j];
-      }
-    }
-
-    printTemperature(result, N);
-  } else { 
-    // send rank_buffer to rank 0
-    auto send_size = N_rank * N_rank;
-
-    vector<double> to_send;
-    for (auto i = 0; i < N_rank; i++) {
-      for (auto j = 0; j < N_rank; j++) {
-        to_send.push_back(buffer[i][j]);
-      }
-    }
-    
-    MPI_Send(&to_send[0], send_size, MPI_DOUBLE, 0, TO_MAIN, comm_3d);
-    cout << "rank " << rank_id << " sended subarray" << endl;
-  }*/
 
   MPI_Finalize();
   return EXIT_SUCCESS;
