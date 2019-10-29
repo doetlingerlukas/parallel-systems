@@ -144,28 +144,42 @@ int main(int argc, char **argv) {
 
       for (auto j = 0; j < N; j++) {
 
-        // send behind/before
+        vector<double> behind_buffer(N_rank);
+        vector<double> before_buffer(N_rank);
+        
+        // send behind
+        if (behind >= 0) {
+          MPI_Request req;
+          MPI_Isend(&buffer[k][N_rank-1], N_rank, MPI_DOUBLE, behind, TO_BEHIND, comm_3d, &req);
+          MPI_Request_free(&req);
+        }
+        // send before
+        if (before >= 0) {
+          MPI_Request req;
+          MPI_Isend(&buffer[k][0], N_rank, MPI_DOUBLE, before, TO_BEFORE, comm_3d, &req);
+          MPI_Request_free(&req);
+        }
 
-          for (auto i = 0; i < N; i++){
+        for (auto i = 0; i < N; i++){
 
-            if (rank_id == source_rank && (i == source_index && j == source_index && source_index == k)) {
-              swap_buffer[i][j][k] = buffer[i][j][k];
-              continue;
-            }
-
-            auto t_current = buffer[i][j][k];
-
-            auto t_upper = (i != 0) ? buffer[i - 1][j][k] : t_current;
-            auto t_lower = (i != N - 1) ? buffer[i + 1][j][k] : t_current;
-            auto t_left = (j != 0) ? buffer[i][j - 1][k] : t_current;
-            auto t_right = (j != N - 1) ? buffer[i][j + 1][k] : t_current;
-            auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
-            auto t_behind = (k != N - 1) ? buffer[i][j][k + 1] : t_current;
-
-            // receives
-
-            swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
+          if (rank_id == source_rank && (i == source_index && j == source_index && source_index == k)) {
+            swap_buffer[i][j][k] = buffer[i][j][k];
+            continue;
           }
+
+          auto t_current = buffer[i][j][k];
+
+          auto t_upper = (i != 0) ? buffer[i - 1][j][k] : t_current;
+          auto t_lower = (i != N - 1) ? buffer[i + 1][j][k] : t_current;
+          auto t_left = (j != 0) ? buffer[i][j - 1][k] : t_current;
+          auto t_right = (j != N - 1) ? buffer[i][j + 1][k] : t_current;
+          auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
+          auto t_behind = (k != N - 1) ? buffer[i][j][k + 1] : t_current;
+
+          // receives
+
+          swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
+        }
       }
     }
     // swap matrices (just pointers, not content)
