@@ -24,14 +24,16 @@ vector<double> convert2dTo1d(vector<vector<double>> m, int N);
 
 vector<double> getColFrom3dAtk(vector<vector<vector<double>>> m, int k, int N, int colnr);
 
+vector<double> getRowFrom3dAtj(vector<vector<vector<double>>> m, int j, int N, int rownr);
+
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 64; // has to be divisable by 8
+  auto N = 16; // has to be divisable by 8
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 10;
+  auto T = N * 5;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << T << " timesteps." << endl;
 
   int rank_id, number_ranks; 
@@ -122,7 +124,7 @@ int main(int argc, char **argv) {
     }
     
 
-    for (auto k = 0; k < N; k++) {
+    for (auto k = 0; k < N_rank; k++) {
       
       // send left
       if (left >= 0) {
@@ -139,55 +141,101 @@ int main(int argc, char **argv) {
         MPI_Request_free(&req);
       }
 
-      for (auto j = 0; j < N; j++) {
+      vector<double> left_buffer(N_rank);
+      vector<double> right_buffer(N_rank);
+
+      // recieve from left
+      if (left >= 0) {
+        MPI_Recv(&left_buffer[0], N_rank, MPI_DOUBLE, left, TO_RIGHT, comm_3d, MPI_STATUS_IGNORE);
+      }
+      // recieve from right
+      if (right >= 0) { 
+        MPI_Recv(&right_buffer[0], N_rank, MPI_DOUBLE, right, TO_LEFT, comm_3d, MPI_STATUS_IGNORE);
+      }
+
+      for (auto j = 0; j < N_rank; j++) {
         
         // send behind
         if (behind >= 0) {
           MPI_Request req;
-          MPI_Isend(&buffer[k][N_rank-1], N_rank, MPI_DOUBLE, behind, TO_BEHIND, comm_3d, &req);
+          vector<double> tmp = getRowFrom3dAtj(buffer, 0, N_rank, k);
+          MPI_Isend(&tmp[0], N_rank, MPI_DOUBLE, behind, TO_BEHIND, comm_3d, &req);
           MPI_Request_free(&req);
         }
         // send before
         if (before >= 0) {
           MPI_Request req;
-          MPI_Isend(&buffer[k][0], N_rank, MPI_DOUBLE, before, TO_BEFORE, comm_3d, &req);
+          vector<double> tmp = getRowFrom3dAtj(buffer, N_rank-1, N_rank, k);
+          MPI_Isend(&tmp[0], N_rank, MPI_DOUBLE, before, TO_BEFORE, comm_3d, &req);
           MPI_Request_free(&req);
         }
 
-        for (auto i = 0; i < N; i++){
+        vector<double> behind_buffer(N_rank);
+        vector<double> before_buffer(N_rank);
 
-          if (rank_id == source_rank && (i == source_index && j == source_index && source_index == k)) {
-            swap_buffer[i][j][k] = buffer[i][j][k];
-            continue;
-          }
+        // recieve from behind
+        if ((behind >= 0) && (j == 0)) {
+          MPI_Recv(&behind_buffer[0], N_rank, MPI_DOUBLE, behind, TO_BEFORE, comm_3d, MPI_STATUS_IGNORE);
+        }
+        // recieve from before
+        if ((before >= 0) && (j == N_rank - 1)) { 
+          MPI_Recv(&before_buffer[0], N_rank, MPI_DOUBLE, before, TO_BEHIND, comm_3d, MPI_STATUS_IGNORE);
+        }
+
+        for (auto i = 0; i < N_rank; i++){
 
           auto t_current = buffer[i][j][k];
 
-          auto t_upper = (i != 0) ? buffer[i - 1][j][k] : t_current;
-          auto t_lower = (i != N - 1) ? buffer[i + 1][j][k] : t_current;
-          auto t_left = (j != 0) ? buffer[i][j - 1][k] : t_current;
-          auto t_right = (j != N - 1) ? buffer[i][j + 1][k] : t_current;
-          auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
-          auto t_behind = (k != N - 1) ? buffer[i][j][k + 1] : t_current;
-
-          vector<double> left_buffer(N_rank);
-          vector<double> right_buffer(N_rank);
-
-          // recieve from left
-          if ((left >= 0) && (j == 0)) {
-            MPI_Recv(&t_left, 1, MPI_DOUBLE, left, TO_RIGHT, comm_2d, MPI_STATUS_IGNORE);
-          }
-          // recieve from right
-          if ((right >= 0) && (j == N_rank - 1)) { 
-            MPI_Recv(&t_right, 1, MPI_DOUBLE, right, TO_LEFT, comm_2d, MPI_STATUS_IGNORE);
+          auto t_upper = (k != N_rank-1) ? buffer[i][j][k+1] : t_current;
+          if ((upper >= 0) && (k == N_rank-1)) {
+            t_upper = upper_buffer[i][j];
           }
 
-          vector<double> behind_buffer(N_rank);
-          vector<double> before_buffer(N_rank);
+          auto t_lower = (k != 0) ? buffer[i][j][k-1] : t_current;
+          if ((lower >= 0) && (k == 0)) {
+            t_lower = lower_buffer[i][j];
+          }
 
-          // TODO receive from behind/before
+          auto t_left = (i != N_rank-1) ? buffer[i+1][j][k] : t_current;
+          if ((left >= 0) && (i == N_rank-1)) {
+            t_left = left_buffer[i];
+          }
 
-          swap_buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
+          auto t_right = (i != 0) ? buffer[i-1][j][k] : t_current;
+          if ((right >= 0) && (i == 0)) {
+            t_right = right_buffer[i];
+          }
+
+          auto t_before = (j != 0) ? buffer[i][j-1][k] : t_current;
+          if ((before >= 0) && (j == 0)) {
+            t_before = before_buffer[j];
+          }
+
+          auto t_behind = (j != N_rank - 1) ? buffer[i][j+1][k] : t_current;
+          if ((behind >= 0) && (j == N_rank - 1)) {
+            t_behind = behind_buffer[j];
+          }
+
+          if (rank_id == source_rank && (i == source_index && j == source_index && source_index == k)) {
+            /*cout << "lower: " << t_lower << endl;
+            cout << "upper: " << t_upper << endl;
+            cout << "left: " << t_left << endl;
+            cout << "right: " << t_right << endl;
+            cout << "behind: " << t_behind << endl;
+            cout << "before: " << t_before << endl;*/
+            swap_buffer[i][j][k] = buffer[i][j][k];
+            //printTemperature(buffer, N_rank);
+            continue;
+          }
+
+          
+          const double max = 273 + 60;
+          const double min = swap_buffer[i][j][k]; 
+
+          t_current = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind - 6 * t_current);
+          t_current = (t_current < min) ? min : t_current;
+        
+          swap_buffer[i][j][k] = (t_current > max) ? max : t_current;
         }
       }
     }
@@ -195,12 +243,84 @@ int main(int argc, char **argv) {
     swap(buffer, swap_buffer);
   }
 
+
+  if (rank_id == 0){ // collect rank_buffers from all nodes
+    vector<vector<vector<double>>> result(N);
+    for (auto i = 0; i < N; i++){
+      result[i].resize(N);
+      for (auto j = 0; j < N; j++){
+		    result[i][j].resize(N, 273);
+      }
+    }
+    for (auto i = 1; i < number_ranks; i++){
+      auto recieve_size = N_rank * N_rank * N_rank;
+      vector<double> A(recieve_size);
+      MPI_Recv(&A[0], recieve_size, MPI_DOUBLE, i, TO_MAIN, comm_3d, MPI_STATUS_IGNORE);
+      //cout << A[0] << endl;
+      
+      //merge arrays of size N_rank*N_rank*N_rank in one array of size N*N*N
+      int coord[3];
+      MPI_Cart_coords(comm_3d, i, 3, coord);
+
+      int x_start = coord[0];
+      int y_start = coord[1];
+      int z_start = coord[2];
+      for(auto k = 0; k < N_rank; k++){
+        for (auto j = 0; j < N_rank; j++) { // iterate rows
+          for (auto i = 0; i < N_rank; i++) { // iterate columns 
+            result[i + x_start * N_rank][j + y_start * N_rank][k + z_start * N_rank] = A[i*N_rank*N_rank + j*N_rank + k]; 
+          }
+        }
+      }
+    }
+    //add rank 0 results
+    int coord[3];
+    MPI_Cart_coords(comm_3d, 0, 3, coord);
+
+    int x_start = coord[0];
+    int y_start = coord[1];
+    int z_start = coord[2];
+
+    for(auto k = 0; k < N_rank; k++){
+        for (auto j = 0; j < N_rank; j++) { // iterate rows
+          for (auto i = 0; i < N_rank; i++) { // iterate columns
+            result[i + x_start * N_rank][j + y_start * N_rank][k + z_start * N_rank] = buffer[i][j][k];
+          }
+        }
+    }
+
+    for (auto j = 0; j < N_rank; j++) { // iterate rows
+        for (auto i = 0; i < N_rank; i++) { // iterate columns
+          cout << result[i][j][0];
+        }
+      cout << endl;
+    }
+
+    printTemperature(result, N);
+  } else { 
+    // send rank_buffer to rank 0
+    auto send_size = N_rank * N_rank * N_rank;
+
+    vector<double> to_send;
+    for (auto i = 0; i < N_rank; i++) {
+      for (auto j = 0; j < N_rank; j++) {
+        for (auto k = 0; k < N_rank; k++){
+          to_send.push_back(buffer[i][j][k]);
+        }
+      }
+    }
+    
+    MPI_Send(&to_send[0], send_size, MPI_DOUBLE, 0, TO_MAIN, comm_3d);
+    cout << "rank " << rank_id << " sended subarray" << endl;
+  }
+  
+
   MPI_Finalize();
   return EXIT_SUCCESS;
 }
 
 vector<double> convert2dTo1d(vector<vector<double>> m, int N){
-  vector<double> result(N);
+  vector<double> result;
   for (auto i = 0; i < N; i++) {
     for (auto j = 0; j < N; j++) {
       result.push_back(m[i][j]);
@@ -222,7 +342,7 @@ vector<vector<double>> convert1dTo2d(vector<double> m, int N){
 }
 
 vector<double> getColFrom3dAtk(vector<vector<vector<double>>> m, int k, int N, int colnr){
-  vector<double> result(N);
+  vector<double> result;
   for (auto i = 0; i < N; i++) { // iterate rows
     for (auto j = 0; j < N; j++) { // iterate columns
       if (j == colnr){
@@ -231,6 +351,14 @@ vector<double> getColFrom3dAtk(vector<vector<vector<double>>> m, int k, int N, i
     }
   }
   return result;
+}
+
+vector<double> getRowFrom3dAtj(vector<vector<vector<double>>> m, int j, int N, int rownr){
+  vector<double> tmp;
+  for (auto i = 0; i < N; i++){
+    tmp.push_back(m[i][j][rownr]); 
+  }
+  return tmp;
 }
 
 
@@ -285,7 +413,10 @@ void printTemperature(vector<vector<vector<double>>> m, int N) {
       int c = ((temp - min) / (max - min)) * numColors;
       c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
       cout << colors[c];
+
+      cout << m[i][j][fixedDepth] << " ";
     }
+    cout << endl;
     // right wall
     cout << "|" << endl;
   }

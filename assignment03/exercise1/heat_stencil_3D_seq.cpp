@@ -10,7 +10,7 @@ void printTemperature(vector<vector<vector<double>>> m, int N);
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 20;
+  auto N = 16;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
