@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #define RESOLUTION 80
 
@@ -14,8 +15,10 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto T = N * 5;
+  auto T = N * 20;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << "*" << N << " for T=" << T << " timesteps." << endl;
+
+  auto start_time = chrono::high_resolution_clock::now();
 
   // init matrix of size N*N
   vector<vector<vector<double>>> A(N);
@@ -58,7 +61,7 @@ int main(int argc, char **argv) {
           }
       }
     }
-    if (!(t % 20)) {
+    if (!(t % 50)) {
       cout << "Step t= " << t << endl;
       printTemperature(A, N);
       cout << endl << endl;
@@ -69,6 +72,12 @@ int main(int argc, char **argv) {
   }
 
   printTemperature(A, N);
+
+  // Measure time.
+  auto end_time = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+  cout << endl;
+  cout << "This took " << duration << " seconds." << endl;
 
   return EXIT_SUCCESS;
 }

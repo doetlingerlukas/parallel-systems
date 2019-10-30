@@ -21,11 +21,11 @@ void printTemperature(vector<vector<double>> m, int N);
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 50; // has to be devisable by 4
+  auto N = 32;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N * 100;
+  auto timesteps = N * 20;
 
   auto start_time = chrono::high_resolution_clock::now();
 
