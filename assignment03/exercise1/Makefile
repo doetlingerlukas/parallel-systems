@@ -1,6 +1,6 @@
 CC = mpic++
 CPP = g++
-CPP_FLAGS = -g -std=c++11 -Wall -Wextra -pedantic
+CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
 
 TARGETS = heat_stencil_2D_seq heat_stencil_3D_seq heat_stencil_3D_mpi
 
