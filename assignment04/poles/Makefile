@@ -1,0 +1,18 @@
+CC = mpic++
+CPP = g++
+CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
+
+TARGETS = heat_stencil_2D_seq 2d_poles
+
+.PHONEY: all
+all: heat_stencil_2D_seq 2d_poles
+
+heat_stencil_2D_seq: heat_stencil_2D_seq.cpp
+	$(CPP) $(CPP_FLAGS) $< -o heat_stencil_2D_seq
+
+2d_poles: 2d_poles.cpp
+	$(CC) $(CPP_FLAGS) $< -o 2d_poles
+
+.PHONEY: clean
+clean:
+	$(RM) $(TARGETS)
