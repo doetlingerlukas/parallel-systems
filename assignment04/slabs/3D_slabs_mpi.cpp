@@ -12,12 +12,12 @@ const static int TO_MAIN = 3;
 
 using namespace std;
 
-void printTemperature(vector<vector<double>> m, int N);
+void printTemperature(vector<vector<vector<double>>> m, int N, int h);
 
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 32;
+  auto N = 8;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -31,11 +31,11 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &amount_of_ranks);
 
   // set up cartesian topology
-  int dimensions[3] = {1, amount_of_ranks, 1}; //slabs
-	int periods[3] = {0, 0, 0};
+  int dimensions[1] = {amount_of_ranks}; //slabs
+	int periods[1] = {0};
   MPI_Comm comm_3d;
-  MPI_Dims_create(amount_of_ranks, 3, dimensions); 
-  MPI_Cart_create(MPI_COMM_WORLD, 3, dimensions, periods, 0, &comm_3d);
+  MPI_Dims_create(amount_of_ranks, 1, dimensions); 
+  MPI_Cart_create(MPI_COMM_WORLD, 1, dimensions, periods, 0, &comm_3d);
 
   // Neighbours rank id's.
 	int upper, lower;
@@ -49,7 +49,6 @@ int main(int argc, char **argv) {
   // Buffers for computation.
   vector<vector<vector<double>>> buffer(N, vector<vector<double>>(slabs_per_rank, vector<double>(N, 273)));
   vector<vector<vector<double>>> swap_buffer(N, vector<vector<double>>(slabs_per_rank, vector<double>(N, 273)));
-
   
   // Place heat source.
   int source = N / 4;
@@ -66,7 +65,7 @@ int main(int argc, char **argv) {
   // Buffer to save upper/lower bordering row.
   vector<double> upper_buffer(N);
   vector<double> lower_buffer(N);
-  
+
   // Iterate over timesteps.
   for (auto t = 0; t < timesteps; t++) { 
 
@@ -74,9 +73,9 @@ int main(int argc, char **argv) {
     for (auto slice = 0; slice < N; slice++) {
       //TODO check here
       // send to lower
-      /*if (lower >= 0) {
+      if (lower >= 0) {
         MPI_Request req;
-        MPI_Isend(&buffer[slice][N-1][0], N, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
+        MPI_Isend(&buffer[slice][slabs_per_rank-1][0], N, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
         MPI_Request_free(&req);
       }
       // send to upper and recieve from upper
@@ -90,15 +89,15 @@ int main(int argc, char **argv) {
       // recieve from lower
       if (lower >= 0) {
         MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_3d, MPI_STATUS_IGNORE);
-      }*/
+      }
 
       // iterate over rows
       for (auto row = 0; row < slabs_per_rank; row++) { 
 
         // iterate over columns
-        /*for (auto column = 0; column < N; column++) {
+        for (auto column = 0; column < N; column++) {
           
-          if (rank_id == source_rank && (row == source_index && (column == source_index && slice == source_index))) {
+          if (rank_id == source_rank && (row == source_index_slab && (column == source_index && slice == source_index))) {
               swap_buffer[slice][row][column] = buffer[slice][row][column];
               continue;
           }
@@ -109,21 +108,23 @@ int main(int argc, char **argv) {
           auto right_temp = (column != N - 1) ? buffer[slice][row][column + 1] : current_temp;
 
           auto upper_temp = (row != 0) ? buffer[slice][row - 1][column] : current_temp;
-          auto lower_temp = (row != N - 1) ? buffer[slice][row + 1][column] : current_temp;
+          auto lower_temp = (row != slabs_per_rank - 1) ? buffer[slice][row + 1][column] : current_temp;
           
           auto front_temp = (slice != 0) ? buffer[slice - 1][row][column] : current_temp;
-          auto back_temp = (slice != slabs_per_rank - 1) ? buffer[slice + 1][row][column] : current_temp;
+          auto back_temp = (slice != N - 1) ? buffer[slice + 1][row][column] : current_temp;
+
           
-          if ((upper >= 0) && (slice = slabs_per_rank - 1)) {
+          if ((upper >= 0) && (row = slabs_per_rank - 1)) {
             upper_temp = upper_buffer[column];
           }
-
-          if ((lower >= 0) && (slice == 0)) {
+          
+          if ((lower >= 0) && (row == 0)) {
             lower_temp = lower_buffer[column];
           }
           
           buffer[slice][row][column] = current_temp + 0.2 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));
-        }*/
+          
+        }
       }
     }
     
@@ -131,11 +132,12 @@ int main(int argc, char **argv) {
     swap(buffer, swap_buffer);
   }
   
-  
-  /*cout << "-----------------------------" << endl;
-  cout << "rank id " << rank_id << endl;
-  printTemperature(buffer[0], N);
-  cout << "-----------------------------" << endl;*/
+  if(rank_id == source_rank){
+    cout << "-----------------------------" << endl;
+    cout << "rank id " << rank_id << endl;
+    printTemperature(buffer, N, source_index_slab);
+    cout << "-----------------------------" << endl;
+  }
   
   
   /*// Collect results.
@@ -204,7 +206,7 @@ int main(int argc, char **argv) {
 }
 
 
-void printTemperature(vector<vector<double>> m, int N) {
+void printTemperature(vector<vector<vector<double>>> m, int N, int h) {
   const char *colors = " .-:=+*^X#%@";
   const int numColors = 12;
 
@@ -240,7 +242,7 @@ void printTemperature(vector<vector<double>> m, int N) {
       double max_t = 0;
       for (auto x = sH * i; x < sH * i + sH; x++) {
         for (auto y = sW * j; y < sW * j + sW; y++) {
-          max_t = (max_t < m[x][y]) ? m[x][y] : max_t;
+          max_t = (max_t < m[x][h][y]) ? m[x][h][y] : max_t;
         }
       }
       double temp = max_t;
