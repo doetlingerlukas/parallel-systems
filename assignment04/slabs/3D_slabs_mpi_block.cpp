@@ -17,11 +17,11 @@ void printTemperature(vector<vector<vector<double>>> m, int N, int h);
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 8;
+  auto N = 16;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N * 20;
+  auto timesteps = N * 30;
 
   auto start_time = chrono::high_resolution_clock::now();
 
@@ -71,24 +71,15 @@ int main(int argc, char **argv) {
 
     // iterate over the z axis
     for (auto slice = 0; slice < N; slice++) {
-      //TODO check here
-      // send to lower
+      // send/receive lower
       if (lower >= 0) {
-        MPI_Request req;
-        MPI_Isend(&buffer[slice][slabs_per_rank-1][0], N, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
-        MPI_Request_free(&req);
+        MPI_Send(&buffer[slice][slabs_per_rank-1][0], N, MPI_DOUBLE, lower, TO_LOWER, comm_3d);
+        MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_3d, MPI_STATUS_IGNORE);
       }
       // send to upper and recieve from upper
       if (upper >= 0) {
-        MPI_Request req;
-        MPI_Isend(&buffer[slice][0][0], N, MPI_DOUBLE, upper, TO_UPPER, comm_3d, &req);
-        MPI_Request_free(&req);
-
+        MPI_Send(&buffer[slice][0][0], N, MPI_DOUBLE, upper, TO_UPPER, comm_3d);
         MPI_Recv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_3d, MPI_STATUS_IGNORE);
-      }
-      // recieve from lower
-      if (lower >= 0) {
-        MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_3d, MPI_STATUS_IGNORE);
       }
 
       // iterate over rows
@@ -114,71 +105,64 @@ int main(int argc, char **argv) {
           auto back_temp = (slice != N - 1) ? buffer[slice + 1][row][column] : current_temp;
 
           
-          if ((upper >= 0) && (row = slabs_per_rank - 1)) {
-            upper_temp = upper_buffer[column];
+          if ((upper >= 0) && (row = slabs_per_rank - 1) && rank_id != source_rank) {
+            if(upper_buffer[column] > 274){
+              //cout << upper_buffer[column] << endl;
+              upper_temp = upper_buffer[column];
+            }
           }
           
-          if ((lower >= 0) && (row == 0)) {
-            lower_temp = lower_buffer[column];
+          if ((lower >= 0) && (row == 0) && rank_id != source_rank) {
+            if(lower_buffer[column] > 273){
+              //cout << lower_buffer[column] << endl;
+              lower_temp = lower_buffer[column];
+            }
           }
           
-          buffer[slice][row][column] = current_temp + 0.2 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));
-          
+          buffer[slice][row][column] = current_temp + 0.14 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));
         }
       }
     }
-    
-    // swap matrices (just pointers, not content)
-    swap(buffer, swap_buffer);
   }
   
-  if(rank_id == source_rank){
-    cout << "-----------------------------" << endl;
-    cout << "rank id " << rank_id << endl;
-    printTemperature(buffer, N, source_index_slab);
-    cout << "-----------------------------" << endl;
-  }
+  cout << "-----------------------------" << endl;
+  cout << "rank id " << rank_id << endl;
+  printTemperature(buffer, N, slabs_per_rank-1);
+  cout << "-----------------------------" << endl;
   
-  
-  /*// Collect results.
+  // Collect results.
   if (rank_id == 0){
     vector<vector<vector<double>>> result(N, vector<vector<double>>(N, vector<double>(N)));
 
     // Array to save coordinates.
-    int coord[3];
+    int coord[1];
     
     // Add buffers from ranks to result.
     for (auto i = 1; i < amount_of_ranks; i++){
       
-      auto receive_size = N * N * slices_per_rank;
+      auto receive_size = N * slabs_per_rank * N;
       vector<double> A(receive_size);
       MPI_Recv(&A[0], receive_size, MPI_DOUBLE, i, TO_MAIN, comm_3d, MPI_STATUS_IGNORE);
       
-      MPI_Cart_coords(comm_3d, i, 3, coord);
-
-      for (auto slice = 0; slice < slices_per_rank; slice++) {
-        for (auto row = 0; row < N; row++) {
+      MPI_Cart_coords(comm_3d, i, 1, coord);
+      for (auto slice = 0; slice < N; slice++) {
+        for (auto row = 0; row < slabs_per_rank; row++) {
           for (auto column = 0; column < N; column++) {
-            result[slice + coord[2] * N][row + coord[1] * N][column + coord[0] * slices_per_rank] = A[column + row * N + slice * N * N];
+            result[slice][row + coord[0] * slabs_per_rank][column] = A[column + row * N + slice * N * N];
           }
         }
       }
     }
-
+    
     // Add buffer of rank 0 to result.
-    MPI_Cart_coords(comm_3d, 0, 3, coord);
-    for (auto slice = 0; slice < slices_per_rank; slice++) {
-      for (auto row = 0; row < N; row++) {
+    MPI_Cart_coords(comm_3d, 0, 1, coord);
+    for (auto slice = 0; slice < N; slice++) {
+      for (auto row = 0; row < slabs_per_rank; row++) {
         for (auto column = 0; column < N; column++) {
-          result[slice + coord[2] * N][row + coord[1] * N][column + coord[0] * slices_per_rank] = buffer[slice][row][column];
+          result[slice][row + coord[1] * slabs_per_rank][column] = buffer[slice][row][column];
         }
       }
     }
-    
-    //printTemperature(result[0], N);
-    printTemperature(result[source], N);
-    //printTemperature(result[chunk_size], N);
-    //printTemperature(result[N-1], N);
 
     // Measure time.
     auto end_time = chrono::high_resolution_clock::now();
@@ -188,18 +172,18 @@ int main(int argc, char **argv) {
 
   } else { 
     // Send buffer to rank 0.
-    auto send_size = N * N * slices_per_rank;
+    auto send_size = N * slabs_per_rank * N;
 
     vector<double> to_send;
-    for (auto slice = 0; slice < slices_per_rank; slice++) {
-      for (auto row = 0; row < N; row++) {
+    for (auto slice = 0; slice < N; slice++) {
+      for (auto row = 0; row < slabs_per_rank; row++) {
         for (auto column = 0; column < N; column++) {
           to_send.push_back(buffer[slice][row][column]);
         }
       }
     }
     MPI_Send(&to_send[0], send_size, MPI_DOUBLE, 0, TO_MAIN, comm_3d);
-  }*/
+  }
 
   MPI_Finalize();
   return EXIT_SUCCESS;
