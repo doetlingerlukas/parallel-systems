@@ -4,16 +4,17 @@
 
 using namespace std;
 
-void printTemperature(vector<vector<double>> m, int problem_size);
+void printTemperature(vector<vector<double>> m, int problem_size, int res_width, int res_height);
+bool verify3d(vector<vector<vector<double>>> m, int problem_size);
 
 int main(int argc, char **argv) {
 
   // problem size
-  auto problem_size = 100;
+  auto problem_size = 50;
   if (argc > 1) {
     problem_size = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = problem_size * 100;
+  auto timesteps = problem_size * 500;
   cout << "Computing heat-distribution with problem size " << problem_size << "^3" << " for " << timesteps << " timesteps." << endl;
 
   auto start_time = chrono::high_resolution_clock::now();
@@ -56,12 +57,22 @@ int main(int argc, char **argv) {
 
     if (!(t % 2000)) {
       cout << "Step t= " << t << endl;
-      printTemperature(buffer_a[source], problem_size);
+      printTemperature(buffer_a[source], problem_size, 50, 30);
       cout << endl << endl;
     }
   }
 
-  printTemperature(buffer_a[source], problem_size);
+  cout << "Final:" << endl;
+  printTemperature(buffer_a[0], problem_size, 50, 30);
+  printTemperature(buffer_a[source], problem_size, 50, 30);
+  printTemperature(buffer_a[problem_size - 1], problem_size, 50, 30);
+
+  // verification
+  if (verify3d(buffer_a, problem_size)) {
+    cout << "VERIFICATION: SUCCESS!" << endl;
+  } else {
+    cout << "VERIFICATION: FAILURE!" << endl;
+  }
 
   // Measure time.
   auto end_time = chrono::high_resolution_clock::now();
@@ -72,20 +83,16 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-void printTemperature(vector<vector<double>> m, int problem_size) {
+void printTemperature(vector<vector<double>> m, int problem_size, int res_width, int res_height) {
   const char *colors = " .-:=+*^X#%@";
   const int numColors = 12;
-
-  // render resolution
-  const int res_width = 80;
-  const int res_height = 50;
 
   // boundaries for temperature (for simplicity hard-coded)
   const double max = 273 + 30;
   const double min = 273 + 0;
 
-  int width_step = problem_size > res_width ? problem_size / res_width : problem_size;
-  int height_step = problem_size > res_height ? problem_size / res_height : problem_size;
+  int width_step = problem_size > res_width ? problem_size / res_width : 1;
+  int height_step = problem_size > res_height ? problem_size / res_height : 1;
  
   // top wall
   for (auto wall = 0; wall < res_width + 2; wall++) {
@@ -119,4 +126,22 @@ void printTemperature(vector<vector<double>> m, int problem_size) {
     cout << "-";
   }
   cout << endl;
+}
+
+bool verify3d(vector<vector<vector<double>>> m, int problem_size) {
+  bool result = true;
+
+  for (auto slice = 0; slice < problem_size; slice++) {
+    for (auto row = 0; row < problem_size; row++) {
+      for (auto column = 0; column < problem_size; column++){
+        auto temp = m[slice][row][column];
+
+        if (temp < 273.0 || temp > 273.0 + 60.0) {
+          result = false;
+        }
+      }
+    }
+  }
+
+  return result;
 }
