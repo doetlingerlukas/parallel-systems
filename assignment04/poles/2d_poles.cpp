@@ -28,8 +28,8 @@ int main(int argc, char **argv) {
   MPI_Comm_size(MPI_COMM_WORLD, &amount_of_ranks);
 
   // set up cartesian topology
-  int dimensions[2] = {amount_of_ranks};
-	int periods[2] = {0};
+  int dimensions[1] = {amount_of_ranks};
+	int periods[1] = {0};
   int ndims = 1;
   MPI_Comm comm_2d;
   MPI_Dims_create(amount_of_ranks, ndims, dimensions); 
