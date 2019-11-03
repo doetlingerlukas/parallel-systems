@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N*100;
+  auto timesteps = N*20;
 
   int rank_id, amount_of_ranks; 
   MPI_Init(&argc, &argv);
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
   MPI_Cart_shift(comm_2d, 1, 1, &upper, &lower);
 
   // Problem size for a single rank.
-  auto chunk_size = N / amount_of_ranks;
+  auto chunk_size = N / ranks_per_row;
 
   // Buffers for computation.
   vector<vector<vector<double>>> buffer(N, vector<vector<double>>(chunk_size, vector<double>(chunk_size, 273)));
@@ -68,22 +68,20 @@ int main(int argc, char **argv) {
   }
 
   // Buffer to save upper/lower border row.
-  vector<double> left_buffer(N);
-  vector<double> right_buffer(N);
   vector<double> upper_buffer(N);
   vector<double> lower_buffer(N);
-
+  
   for (auto t = 0; t < timesteps; t++) { // iterate timesteps
     for (auto i = 0; i < N; i++) { // slices
 
       // send/rec upper/lower row
       if (lower >= 0) { // lower
-        MPI_Send(&buffer[i][chunk_size-1], chunk_size, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
+        MPI_Send(&buffer[i][chunk_size-1][0], chunk_size, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
         MPI_Recv(&lower_buffer[0], chunk_size, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
       }
 
       if (upper >= 0) { // upper
-        MPI_Send(&buffer[i][0], chunk_size, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
+        MPI_Send(&buffer[i][0][0], chunk_size, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
         MPI_Recv(&upper_buffer[0], chunk_size, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
       }
 
@@ -105,14 +103,14 @@ int main(int argc, char **argv) {
           }
                      
           auto t_current = buffer[i][j][k];
-
+          
           auto t_upper = (i != 0) ? buffer[i - 1][j][k] : t_current;
-          auto t_lower = (i != chunk_size - 1) ? buffer[i + 1][j][k] : t_current;
+          auto t_lower = (i != N - 1) ? buffer[i + 1][j][k] : t_current;
           auto t_left = (j != 0) ? buffer[i][j - 1][k] : t_current;
           auto t_right = (j != chunk_size - 1) ? buffer[i][j + 1][k] : t_current;
           auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
-          auto t_behind = (k != N - 1) ? buffer[i][j][k + 1] : t_current;
-
+          auto t_behind = (k != chunk_size - 1) ? buffer[i][j][k + 1] : t_current;
+          
           if ((left >= 0) && (j == 0)) {
             MPI_Recv(&t_left, 1, MPI_DOUBLE, left, TO_RIGHT, comm_2d, MPI_STATUS_IGNORE);
           }
@@ -121,7 +119,16 @@ int main(int argc, char **argv) {
             MPI_Recv(&t_right, 1, MPI_DOUBLE, right, TO_LEFT, comm_2d, MPI_STATUS_IGNORE);
           }
 
+          if ((upper >= 0) && (j == 0)) {
+            t_upper = upper_buffer[i];
+          }
+
+          if ((lower >= 0) && (j == chunk_size - 1)) {
+            t_lower = lower_buffer[i];
+          }
+          
           buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind + (6 * t_current));
+          
         }
         swap(buffer, swap_buffer);
       }
@@ -144,20 +151,24 @@ int main(int argc, char **argv) {
       vector<double> rank_result(send_size);
       MPI_Recv(&rank_result[0], send_size, MPI_DOUBLE, l, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
 
+      int coord[2];
+      MPI_Cart_coords(comm_2d, l, 2, coord);
+      
       for (auto i = 0; i < N; i++) {
         for (auto j = 0; j < chunk_size; j++) {
           for (auto k = 0; k < chunk_size; k++) {
-            result[k + l * chunk_size][j + l*chunk_size][i] = rank_result[k + j*chunk_size + i*N];
+            result[i][j + coord[1] * chunk_size][k + coord[0] * chunk_size] = rank_result[k + j * chunk_size + i * N];
           }
         }
       }
+      
     }
 
     // Add buffer of rank 0 to result.
     for (auto i = 0; i < N; i++) {
       for (auto j = 0; j < chunk_size; j++) {
         for (auto k = 0; k < chunk_size; k++) {
-          result[k][j][i] = buffer[i][j][k];
+          result[i][j][k] = buffer[i][j][k];
         }
       }
     }
@@ -175,8 +186,9 @@ int main(int argc, char **argv) {
       }
     }
     MPI_Send(&to_send[0], send_size, MPI_DOUBLE, 0, TO_MAIN, comm_2d);
+    cout << rank_id << " sent result to 0"<<endl;
   }
-
+  
   MPI_Finalize();
   return EXIT_SUCCESS;
 }
