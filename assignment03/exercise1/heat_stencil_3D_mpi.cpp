@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
             back_temp = back_buffer[column];
           }
 
-          buffer[slice][row][column] = current_temp + 0.2 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));  
+          buffer[slice][row][column] = current_temp + 0.14 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));  
         }
       }
     }
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
     //printTemperature(result[N-1], N);
 
     // verification
-    if (verify3d(buffer_a, problem_size)) {
+    if (verify3d(buffer, N)) {
       cout << "VERIFICATION: SUCCESS!" << endl;
     } else {
       cout << "VERIFICATION: FAILURE!" << endl;

@@ -8,7 +8,7 @@ static const double SOURCE_TEMP = 273 + 60;
 static const double MAX_TEMP = 273 + 30;
 static const double MIN_TEMP = 273 + 0;
 
-void printTemperature(vector<vector<double>> m, int problem_size, int res_width, int res_height) {
+void printTemperature(const vector<vector<double>>& m, int problem_size, int res_width, int res_height) {
   const char *colors = " .-:=+*^X#%@";
   const int numColors = 12;
 
@@ -49,7 +49,7 @@ void printTemperature(vector<vector<double>> m, int problem_size, int res_width,
   cout << endl;
 }
 
-bool verify2d(vector<vector<double>> m, int problem_size) {
+bool verify2d(const vector<vector<double>>& m, int problem_size) {
   bool result = true;
 
   for (auto row = 0; row < problem_size; row++) {
@@ -65,7 +65,7 @@ bool verify2d(vector<vector<double>> m, int problem_size) {
   return result;
 }
 
-bool verify3d(vector<vector<vector<double>>> m, int problem_size) {
+bool verify3d(const vector<vector<vector<double>>>& m, int problem_size) {
   bool result = true;
 
   for (auto slice = 0; slice < problem_size; slice++) {
