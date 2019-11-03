@@ -1,8 +1,6 @@
-#include <iostream>
-#include <vector>
-#include <chrono>
+#include "../shared/stencil.hpp"
 
-#include "../../shared/stencil.hpp"
+#include <chrono>
 
 using namespace std;
 

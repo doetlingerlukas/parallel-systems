@@ -1,4 +1,4 @@
-#include "../../shared/stencil.hpp"
+#include "../shared/stencil.hpp"
 
 #include <cmath>
 #include <chrono>

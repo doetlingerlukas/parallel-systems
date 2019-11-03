@@ -1,10 +1,8 @@
-#include <iostream>
-#include <vector>
+#include "../shared/stencil.hpp"
+
 #include <cmath>
 #include <chrono>
 #include <mpi.h>
-
-#include "../../shared/stencil.hpp"
 
 const static int TO_LEFT = 0;
 const static int TO_RIGHT = 1;
