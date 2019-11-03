@@ -1,10 +1,8 @@
-#include <iostream>
-#include <vector>
+#include "../../shared/stencil.hpp"
+
 #include <cmath>
 #include <chrono>
 #include <mpi.h>
-
-#include "../../shared/stencil.hpp"
 
 const static int TO_LEFT = 0;
 const static int TO_RIGHT = 1;
@@ -19,11 +17,11 @@ using namespace std;
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 32;
+  auto N = 50;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N * 20;
+  auto timesteps = N * 500;
 
   auto start_time = chrono::high_resolution_clock::now();
 
@@ -53,8 +51,6 @@ int main(int argc, char **argv) {
 	MPI_Cart_shift(comm_3d, 0, 1, &left, &right);
 	MPI_Cart_shift(comm_3d, 1, 1, &upper, &lower);
   MPI_Cart_shift(comm_3d, 2, 1, &front, &back);
-
-  //cout << "rank: " << rank_id << "| left: " << left << "| right: " << right << "| upper: " << upper << "| lower: " << lower << "| front: " << front << "| back: " << back << endl;
 
   // Problem size for a single rank.
   auto chunk_size = N / ranks_per_row;
@@ -143,7 +139,7 @@ int main(int argc, char **argv) {
         for (auto column = 0; column < chunk_size; column++) {
 
           if (rank_id == source_rank && (row == source_index && (column == source_index && slice == source_index))) {
-              //swap_buffer[slice][row][column] = buffer[slice][row][column];
+              swap_buffer[slice][row][column] = buffer[slice][row][column];
               continue;
           }
           
@@ -182,21 +178,14 @@ int main(int argc, char **argv) {
             back_temp = back_buffer[column];
           }
 
-          buffer[slice][row][column] = current_temp + 0.14 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));  
+          swap_buffer[slice][row][column] = current_temp + 0.14 * (left_temp + right_temp + upper_temp + lower_temp + front_temp + back_temp + (-6 * current_temp));  
         }
       }
     }
     
     // swap matrices (just pointers, not content)
-    //swap(buffer, swap_buffer);
+    buffer.swap(swap_buffer);
   }
-  
-  /*
-  cout << "-----------------------------" << endl;
-  cout << "rank id " << rank_id << endl;
-  printTemperature(buffer[0], chunk_size);
-  cout << "-----------------------------" << endl;
-  */
   
   // Collect results.
   if (rank_id == 0){
@@ -239,7 +228,7 @@ int main(int argc, char **argv) {
     //printTemperature(result[N-1], N);
 
     // verification
-    if (verify3d(buffer, N)) {
+    if (verify3d(result, N)) {
       cout << "VERIFICATION: SUCCESS!" << endl;
     } else {
       cout << "VERIFICATION: FAILURE!" << endl;

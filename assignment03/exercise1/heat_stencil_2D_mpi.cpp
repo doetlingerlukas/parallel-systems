@@ -186,7 +186,7 @@ int main(int argc, char **argv) {
     printTemperature(result, N, 80, 50);
 
     // verification
-    if (verify2d(buffer, N)) {
+    if (verify2d(result, N)) {
       cout << "VERIFICATION: SUCCESS!" << endl;
     } else {
       cout << "VERIFICATION: FAILURE!" << endl;
