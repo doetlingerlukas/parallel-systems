@@ -14,14 +14,16 @@ using namespace std;
 
 void printTemperature(vector<vector<vector<double>>> m, int N, int h);
 
+bool verify3d(vector<vector<vector<double>>> m, int problem_size);
+
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 16;
+  auto N = 32;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N * 30;
+  auto timesteps = N * 50;
 
   auto start_time = chrono::high_resolution_clock::now();
 
@@ -66,6 +68,8 @@ int main(int argc, char **argv) {
   vector<double> upper_buffer(N);
   vector<double> lower_buffer(N);
 
+  MPI_Request req;
+
   // Iterate over timesteps.
   for (auto t = 0; t < timesteps; t++) { 
 
@@ -74,19 +78,15 @@ int main(int argc, char **argv) {
 
       // send/receive lower
       if (lower >= 0) {
-        MPI_Request req;
         MPI_Isend(&buffer[slice][slabs_per_rank-1][0], N, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
-        MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_3d, MPI_STATUS_IGNORE);
-
-        MPI_Request_free(&req);
+        MPI_Irecv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_3d, &req);
+        MPI_Wait(&req, MPI_STATUS_IGNORE);
       }
       // send/receive upper
       if (upper >= 0) {
-        MPI_Request req;
         MPI_Isend(&buffer[slice][0][0], N, MPI_DOUBLE, upper, TO_UPPER, comm_3d, &req);
-        MPI_Recv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_3d, MPI_STATUS_IGNORE);
-
-        MPI_Request_free(&req);
+        MPI_Irecv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_3d, &req);
+        MPI_Wait(&req, MPI_STATUS_IGNORE);
       }
 
       // iterate over rows
@@ -132,12 +132,19 @@ int main(int argc, char **argv) {
     }
   }
   
-  cout << "-----------------------------" << endl;
-  cout << "rank id " << rank_id << endl;
-  printTemperature(buffer, N, slabs_per_rank-1);
-  cout << "-----------------------------" << endl;
+  if(rank_id==source_rank){
+    cout << "-----------------------------" << endl;
+    cout << "source rank id " << rank_id << endl;
+    printTemperature(buffer, N, source_index_slab);
+    cout << "-----------------------------" << endl;
+  }else{
+    cout << "-----------------------------" << endl;
+    cout << "rank id " << rank_id << endl;
+    printTemperature(buffer, N, slabs_per_rank-1);
+    cout << "-----------------------------" << endl;
+  }
   
-  // Collect results.
+  // Collect results nd verify.
   if (rank_id == 0){
     vector<vector<vector<double>>> result(N, vector<vector<double>>(N, vector<double>(N)));
 
@@ -155,7 +162,7 @@ int main(int argc, char **argv) {
       for (auto slice = 0; slice < N; slice++) {
         for (auto row = 0; row < slabs_per_rank; row++) {
           for (auto column = 0; column < N; column++) {
-            result[slice][row + coord[0] * slabs_per_rank][column] = A[column + row * N + slice * N * N];
+            result[slice][row + coord[0] * slabs_per_rank][column] = A[column + row * slabs_per_rank + slice * slabs_per_rank * N];
           }
         }
       }
@@ -166,16 +173,22 @@ int main(int argc, char **argv) {
     for (auto slice = 0; slice < N; slice++) {
       for (auto row = 0; row < slabs_per_rank; row++) {
         for (auto column = 0; column < N; column++) {
-          result[slice][row + coord[1] * slabs_per_rank][column] = buffer[slice][row][column];
+          result[slice][row + coord[0] * slabs_per_rank][column] = buffer[slice][row][column];
         }
       }
     }
 
+    if (verify3d(result, N)) {
+      cout << "VERIFICATION: SUCCESS!" << endl;
+    } else {
+      cout << "VERIFICATION: FAILURE!" << endl;
+    }
+
     // Measure time.
     auto end_time = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
     cout << endl;
-    cout << "This took " << duration << " seconds." << endl;
+    cout << "This took " << duration << " milliseconds." << endl;
 
   } else { 
     // Send buffer to rank 0.
@@ -252,4 +265,23 @@ void printTemperature(vector<vector<vector<double>>> m, int N, int h) {
     cout << "-";
   }
   cout << endl;
+}
+
+bool verify3d(vector<vector<vector<double>>> m, int problem_size) {
+  bool result = true;
+
+  for (auto slice = 0; slice < problem_size; slice++) {
+    for (auto row = 0; row < problem_size; row++) {
+      for (auto column = 0; column < problem_size; column++){
+        auto temp = m[slice][row][column];
+
+        if (temp < 273.0 || temp > 273.0 + 60.0) {
+          //cout << temp << endl;
+          result = false;
+        }
+      }
+    }
+  }
+
+  return result;
 }

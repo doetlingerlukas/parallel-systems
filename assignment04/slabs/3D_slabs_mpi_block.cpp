@@ -17,11 +17,11 @@ void printTemperature(vector<vector<vector<double>>> m, int N, int h);
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 16;
+  auto N = 32;
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N * 30;
+  auto timesteps = N * 40;
 
   auto start_time = chrono::high_resolution_clock::now();
 
@@ -125,10 +125,17 @@ int main(int argc, char **argv) {
     }
   }
   
-  cout << "-----------------------------" << endl;
-  cout << "rank id " << rank_id << endl;
-  printTemperature(buffer, N, slabs_per_rank-1);
-  cout << "-----------------------------" << endl;
+  if(rank_id==source_rank){
+    cout << "-----------------------------" << endl;
+    cout << "source rank id " << rank_id << endl;
+    printTemperature(buffer, N, source_index_slab);
+    cout << "-----------------------------" << endl;
+  }else{
+    cout << "-----------------------------" << endl;
+    cout << "rank id " << rank_id << endl;
+    printTemperature(buffer, N, slabs_per_rank-1);
+    cout << "-----------------------------" << endl;
+  }
   
   // Collect results.
   if (rank_id == 0){
@@ -148,7 +155,7 @@ int main(int argc, char **argv) {
       for (auto slice = 0; slice < N; slice++) {
         for (auto row = 0; row < slabs_per_rank; row++) {
           for (auto column = 0; column < N; column++) {
-            result[slice][row + coord[0] * slabs_per_rank][column] = A[column + row * N + slice * N * N];
+            result[slice][row + coord[0] * slabs_per_rank][column] = A[column + row * slabs_per_rank + slice * slabs_per_rank * N];
           }
         }
       }
@@ -159,16 +166,16 @@ int main(int argc, char **argv) {
     for (auto slice = 0; slice < N; slice++) {
       for (auto row = 0; row < slabs_per_rank; row++) {
         for (auto column = 0; column < N; column++) {
-          result[slice][row + coord[1] * slabs_per_rank][column] = buffer[slice][row][column];
+          result[slice][row + coord[0] * slabs_per_rank][column] = buffer[slice][row][column];
         }
       }
     }
 
     // Measure time.
     auto end_time = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
     cout << endl;
-    cout << "This took " << duration << " seconds." << endl;
+    cout << "This took " << duration << " milliseconds." << endl;
 
   } else { 
     // Send buffer to rank 0.
