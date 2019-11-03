@@ -6,9 +6,6 @@
 
 using namespace std;
 
-void printTemperature(vector<vector<double>> m, int problem_size, int res_width, int res_height);
-bool verify3d(vector<vector<vector<double>>> m, int problem_size);
-
 int main(int argc, char **argv) {
 
   // problem size

@@ -4,7 +4,7 @@
 #include <chrono>
 #include <mpi.h>
 
-#define RESOLUTION 80
+#include "../../shared/stencil.hpp"
 
 const static int TO_LEFT = 0;
 const static int TO_RIGHT = 1;
@@ -13,8 +13,6 @@ const static int TO_LOWER = 3;
 const static int TO_MAIN = 4;
 
 using namespace std;
-
-void printTemperature(vector<vector<double>> m, int N);
 
 int main(int argc, char **argv) {
 
@@ -185,7 +183,14 @@ int main(int argc, char **argv) {
       }
     }
 
-    printTemperature(result, N);
+    printTemperature(result, N, 80, 50);
+
+    // verification
+    if (verify2d(buffer, N)) {
+      cout << "VERIFICATION: SUCCESS!" << endl;
+    } else {
+      cout << "VERIFICATION: FAILURE!" << endl;
+    }
 
     // Measure time.
     auto end_time = chrono::high_resolution_clock::now();
@@ -208,62 +213,4 @@ int main(int argc, char **argv) {
 
   MPI_Finalize();
   return EXIT_SUCCESS;
-}
-
-
-void printTemperature(vector<vector<double>> m, int N) {
-  const char *colors = " .-:=+*^X#%@";
-  const int numColors = 12;
-
-  // boundaries for temperature (for simplicity hard-coded)
-  const double max = 273 + 30;
-  const double min = 273 + 0;
-
-  // set the 'render' resolution
-  int W = RESOLUTION;
-  int H = RESOLUTION;
-  if (N < RESOLUTION){
-    W = N;
-    H = N;
-  }
-
-  // step size in each dimension
-  int sW = N / W;
-  int sH = N / H;
- 
-  // top wall
-  for (auto i = 0; i < W + 2; i++) {
-    cout << "-";
-  }
-  cout << endl;
-  
-  for (auto i = 0; i < H; i++){
-    // left wall
-    cout << "|";
-    
-    // computing a row
-    for (auto j = 0; j < W; j++) {
-      
-      double max_t = 0;
-      for (auto x = sH * i; x < sH * i + sH; x++) {
-        for (auto y = sW * j; y < sW * j + sW; y++) {
-          max_t = (max_t < m[x][y]) ? m[x][y] : max_t;
-        }
-      }
-      double temp = max_t;
-
-      // pick the 'color'
-      int c = ((temp - min) / (max - min)) * numColors;
-      c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
-      cout << colors[c];
-    }
-    // right wall
-    cout << "|" << endl;
-  }
-
-  // bottom wall
-  for (auto i = 0; i < W + 2; i++) {
-    cout << "-";
-  }
-  cout << endl;
 }

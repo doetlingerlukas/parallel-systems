@@ -2,11 +2,9 @@
 #include <vector>
 #include <chrono>
 
-#define RESOLUTION 80
+#include "../../shared/stencil.hpp"
 
 using namespace std;
-
-void printTemperature(vector<vector<double>> m, int N);
 
 int main(int argc, char **argv) {
 
@@ -21,20 +19,16 @@ int main(int argc, char **argv) {
   auto start_time = chrono::high_resolution_clock::now();
 
   // init matrix of size N*N
-  vector<vector<double>> A(N);
-  vector<vector<double>> B(N);
-  for (auto i = 0; i < N; i++){
-		A[i].resize(N, 273);
-    B[i].resize(N, 273);
-  }
+  vector<vector<double>> A(N, vector<double>(N, 273));
+  vector<vector<double>> B(N, vector<double>(N, 273));
 
   auto source_x = N/4;
   auto source_y = N/4;
   A[source_x][source_y] = 273 + 60;
 
-  for (auto t = 0; t < T; t++) { // iterate timesteps
-    for (auto i = 0; i < N; i++) { // iterate rows
-      for (auto j = 0; j < N; j++) { // iterate columns
+  for (auto t = 0; t < T; t++) {
+    for (auto i = 0; i < N; i++) {
+      for (auto j = 0; j < N; j++) {
 
         if (i == source_x && j == source_y) {
             B[i][j] = A[i][j];
@@ -53,7 +47,7 @@ int main(int argc, char **argv) {
     }
     if (!(t % 1000)) {
       cout << "Step t= " << t << endl;
-      printTemperature(A, N);
+      printTemperature(A, N, 80, 50);
       cout << endl << endl;
     }
 
@@ -61,70 +55,18 @@ int main(int argc, char **argv) {
     swap(A, B);
   }
 
-    // Measure time.
+  // verification
+  if (verify2d(A, N)) {
+    cout << "VERIFICATION: SUCCESS!" << endl;
+  } else {
+    cout << "VERIFICATION: FAILURE!" << endl;
+  }
+
+  // Measure time.
   auto end_time = chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
   cout << endl;
   cout << "This took " << duration << " seconds." << endl;
 
   return EXIT_SUCCESS;
-}
-
-
-void printTemperature(vector<vector<double>> m, int N) {
-  const char *colors = " .-:=+*^X#%@";
-  const int numColors = 12;
-
-  // boundaries for temperature (for simplicity hard-coded)
-  const double max = 273 + 30;
-  const double min = 273 + 0;
-
-  // set the 'render' resolution
-  int W = RESOLUTION;
-  int H = RESOLUTION;
-  if (N < RESOLUTION){
-    W = N;
-    H = N;
-  }
-
-
-  // step size in each dimension
-  int sW = N / W;
-  int sH = N / H;
- 
-  // top wall
-  for (auto i = 0; i < W + 2; i++) {
-    cout << "-";
-  }
-  cout << endl;
-  
-  for (auto i = 0; i < H; i++){
-    // left wall
-    cout << "|";
-    
-    // computing a row
-    for (auto j = 0; j < W; j++) {
-      
-      double max_t = 0;
-      for (auto x = sH * i; x < sH * i + sH; x++) {
-        for (auto y = sW * j; y < sW * j + sW; y++) {
-          max_t = (max_t < m[x][y]) ? m[x][y] : max_t;
-        }
-      }
-      double temp = max_t;
-
-      // pick the 'color'
-      int c = ((temp - min) / (max - min)) * numColors;
-      c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
-      cout << colors[c];
-    }
-    // right wall
-    cout << "|" << endl;
-  }
-
-  // bottom wall
-  for (auto i = 0; i < W + 2; i++) {
-    cout << "-";
-  }
-  cout << endl;
 }
