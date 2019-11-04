@@ -1,3 +1,5 @@
+#include "../../shared/stencil.hpp"
+
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -14,7 +16,7 @@ const int TO_LEFT = 2;
 const int TO_RIGHT = 3;
 const int TO_MAIN = 4;
 
-void printTemperature(vector<vector<double>> m, int N);
+void printTemperature(vector<vector<vector<double>>> m, int N, int h);
 
 int main(int argc, char **argv) {
 
@@ -23,7 +25,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N*20;
+  auto timesteps = N*50;
 
   int rank_id, amount_of_ranks; 
   MPI_Init(&argc, &argv);
@@ -127,7 +129,7 @@ int main(int argc, char **argv) {
             t_lower = lower_buffer[i];
           }
           
-          buffer[i][j][k] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + t_before + t_behind + (6 * t_current));
+          buffer[i][j][k] = t_current + 0.14 * (t_left + t_right + t_upper + t_lower + t_before + t_behind + (6 * t_current));
           
         }
         swap(buffer, swap_buffer);
@@ -172,9 +174,15 @@ int main(int argc, char **argv) {
         }
       }
     }
-    
-    //printTemperature(result[0], N);
-    printTemperature(result[source_z], N);
+
+    printTemperature(result[N/4], N, 50, 30);
+
+    // verification
+    if (verify3d(result, N)) {
+      cout << "VERIFICATION: SUCCESS!" << endl;
+    } else {
+      cout << "VERIFICATION: FAILURE!" << endl;
+    }
 
   } else { // send buffer to rank 0
     vector<double> to_send;
@@ -186,68 +194,8 @@ int main(int argc, char **argv) {
       }
     }
     MPI_Send(&to_send[0], send_size, MPI_DOUBLE, 0, TO_MAIN, comm_2d);
-    cout << rank_id << " sent result to 0"<<endl;
   }
   
   MPI_Finalize();
   return EXIT_SUCCESS;
-}
-
-
-void printTemperature(vector<vector<double>> m, int N) {
-  const char *colors = " .-:=+*^X#%@";
-  const int numColors = 12;
-
-  // boundaries for temperature (for simplicity hard-coded)
-  const double max = 273 + 30;
-  const double min = 273 + 0;
-
-  // set the 'render' resolution
-  int W = RESOLUTION;
-  int H = RESOLUTION;
-  if (N < RESOLUTION){
-    W = N;
-    H = N;
-  }
-
-
-  // step size in each dimension
-  int sW = N / W;
-  int sH = N / H;
- 
-  // top wall
-  for (auto i = 0; i < W + 2; i++) {
-    cout << "-";
-  }
-  cout << endl;
-  
-  for (auto i = 0; i < H; i++){
-    // left wall
-    cout << "|";
-    
-    // computing a row
-    for (auto j = 0; j < W; j++) {
-      
-      double max_t = 0;
-      for (auto x = sH * i; x < sH * i + sH; x++) {
-        for (auto y = sW * j; y < sW * j + sW; y++) {
-          max_t = (max_t < m[x][y]) ? m[x][y] : max_t;
-        }
-      }
-      double temp = max_t;
-
-      // pick the 'color'
-      int c = ((temp - min) / (max - min)) * numColors;
-      c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
-      cout << colors[c];
-    }
-    // right wall
-    cout << "|" << endl;
-  }
-
-  // bottom wall
-  for (auto i = 0; i < W + 2; i++) {
-    cout << "-";
-  }
-  cout << endl;
 }
