@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     problem_size = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = problem_size * 500;
+  auto timesteps = problem_size * 100;
   cout << "Computing heat-distribution with problem size " << problem_size << "^3" << " for " << timesteps << " timesteps." << endl;
 
   auto start_time = chrono::high_resolution_clock::now();
