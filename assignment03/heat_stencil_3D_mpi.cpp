@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N * 500;
+  auto timesteps = N * 100;
 
   auto start_time = chrono::high_resolution_clock::now();
 
