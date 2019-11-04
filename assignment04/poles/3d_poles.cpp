@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
-  auto timesteps = N*50;
+  auto timesteps = N*100;
 
   int rank_id, amount_of_ranks; 
   MPI_Init(&argc, &argv);
@@ -62,11 +62,14 @@ int main(int argc, char **argv) {
   vector<vector<vector<double>>> swap_buffer(N, vector<vector<double>>(chunk_size, vector<double>(chunk_size, 273)));
 
   // Place heat source.
-  int source_y = chunk_size / 2;
-  int source_x = chunk_size / 2;
-  int source_z = N / 4;
-  if (rank_id == 0) {
-    buffer[source_z][source_x][source_y] = 273 + 60;
+  int source = N / 4;
+  int source_coords[3] = {(source / N), (source / chunk_size), (source / chunk_size)};
+  int source_rank;
+  MPI_Cart_rank(comm_2d, source_coords, &source_rank);
+  auto source_index = source % chunk_size;
+  
+  if (rank_id == source_rank) {
+    buffer[source][source_index][source_index] = 273 + 60;
   }
 
   // Buffer to save upper/lower border row.
@@ -99,37 +102,39 @@ int main(int argc, char **argv) {
         }
 
         for (auto k = 0; k < chunk_size; k++){ // columns
-          if (rank_id == 0 && (i == source_z && j == source_x && k == source_y)) {
+          if (rank_id == source_rank && i == source && j == source_index && k == source_index) {
               swap_buffer[i][j][k] = buffer[i][j][k];
               continue;
           }
                      
           auto t_current = buffer[i][j][k];
           
-          auto t_upper = (i != 0) ? buffer[i - 1][j][k] : t_current;
-          auto t_lower = (i != N - 1) ? buffer[i + 1][j][k] : t_current;
-          auto t_left = (j != 0) ? buffer[i][j - 1][k] : t_current;
-          auto t_right = (j != chunk_size - 1) ? buffer[i][j + 1][k] : t_current;
-          auto t_before = (k != 0) ? buffer[i][j][k - 1] : t_current;
-          auto t_behind = (k != chunk_size - 1) ? buffer[i][j][k + 1] : t_current;
+          auto t_upper = (j != 0) ? buffer[i][j-1][k] : t_current;
+          auto t_lower = (j != chunk_size - 1) ? buffer[i][j+1][k] : t_current;
+
+          auto t_left = (k != 0) ? buffer[i][j][k-1] : t_current;
+          auto t_right = (k != chunk_size - 1) ? buffer[i][j][k+1] : t_current;
+
+          auto t_front = (i != 0) ? buffer[i-1][j][k] : t_current;
+          auto t_back = (i != N - 1) ? buffer[i+1][j][k] : t_current;
           
-          if ((left >= 0) && (j == 0)) {
+          if ((left >= 0) && (k == 0)) {
             MPI_Recv(&t_left, 1, MPI_DOUBLE, left, TO_RIGHT, comm_2d, MPI_STATUS_IGNORE);
           }
 
-          if ((right >= 0) && (j == chunk_size - 1)) { 
+          if ((right >= 0) && (k == chunk_size - 1)) { 
             MPI_Recv(&t_right, 1, MPI_DOUBLE, right, TO_LEFT, comm_2d, MPI_STATUS_IGNORE);
           }
 
           if ((upper >= 0) && (j == 0)) {
-            t_upper = upper_buffer[i];
+            t_upper = upper_buffer[k];
           }
 
           if ((lower >= 0) && (j == chunk_size - 1)) {
-            t_lower = lower_buffer[i];
+            t_lower = lower_buffer[k];
           }
           
-          buffer[i][j][k] = t_current + 0.14 * (t_left + t_right + t_upper + t_lower + t_before + t_behind + (6 * t_current));
+          swap_buffer[i][j][k] = t_current + 0.14 * (t_left + t_right + t_upper + t_lower + t_front + t_back + (-6 * t_current));
           
         }
         swap(buffer, swap_buffer);
@@ -137,7 +142,7 @@ int main(int argc, char **argv) {
     }
 
     // swap matrices (just pointers, not content)
-    swap(buffer, swap_buffer);
+    buffer.swap(swap_buffer);
   }
   
   auto send_size = N * chunk_size * chunk_size;
@@ -145,14 +150,14 @@ int main(int argc, char **argv) {
   // Collect results.
   if (rank_id == 0){
 
-    vector<vector<vector<double>>> result(N, vector<vector<double>>(N, vector<double>(N)));
+    vector<vector<vector<double>>> result(N, vector<vector<double>>(N, vector<double>(N, 273)));
     
     // Add buffers from ranks to result.
     for (auto l = 1; l < amount_of_ranks; l++){
     
       vector<double> rank_result(send_size);
       MPI_Recv(&rank_result[0], send_size, MPI_DOUBLE, l, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
-
+      
       int coord[2];
       MPI_Cart_coords(comm_2d, l, 2, coord);
       
@@ -165,7 +170,7 @@ int main(int argc, char **argv) {
       }
       
     }
-
+    
     // Add buffer of rank 0 to result.
     for (auto i = 0; i < N; i++) {
       for (auto j = 0; j < chunk_size; j++) {
