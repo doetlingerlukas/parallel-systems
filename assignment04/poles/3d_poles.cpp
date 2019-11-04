@@ -6,7 +6,8 @@
 #include <mpi.h>
 #include <cmath>
 
-#define RESOLUTION 80
+#define RESOLUTION_WIDTH 50
+#define RESOLUTION_HEIGHT 30
 
 using namespace std;
 
@@ -26,6 +27,8 @@ int main(int argc, char **argv) {
     N = strtol(argv[1], nullptr, 10);
   }
   auto timesteps = N*100;
+
+  auto start_time = chrono::high_resolution_clock::now();
 
   int rank_id, amount_of_ranks; 
   MPI_Init(&argc, &argv);
@@ -150,7 +153,7 @@ int main(int argc, char **argv) {
   // Collect results.
   if (rank_id == 0){
 
-    vector<vector<vector<double>>> result(N, vector<vector<double>>(N, vector<double>(N, 273)));
+    vector<vector<vector<double>>> result(N, vector<vector<double>>(N, vector<double>(N)));
     
     // Add buffers from ranks to result.
     for (auto l = 1; l < amount_of_ranks; l++){
@@ -180,7 +183,7 @@ int main(int argc, char **argv) {
       }
     }
 
-    printTemperature(result[N/4], N, 50, 30);
+    printTemperature(result[N/4], N, RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
 
     // verification
     if (verify3d(result, N)) {
@@ -188,6 +191,12 @@ int main(int argc, char **argv) {
     } else {
       cout << "VERIFICATION: FAILURE!" << endl;
     }
+
+    // Measure time.
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+    cout << endl;
+    cout << "This took " << duration << " seconds." << endl;
 
   } else { // send buffer to rank 0
     vector<double> to_send;

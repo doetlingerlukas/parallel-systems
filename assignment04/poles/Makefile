@@ -1,5 +1,4 @@
 CC = mpic++
-CPP = g++
 CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
 
 TARGETS = 2d_poles 3d_poles
