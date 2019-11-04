@@ -84,16 +84,11 @@ int main(int argc, char **argv) {
 
       // send to lower
       if (lower >= 0) {
-        MPI_Request req;
-        MPI_Send(&buffer[slice][chunk_size-1][0], chunk_size, MPI_DOUBLE, lower, TO_LOWER, comm_3d, &req);
-        MPI_Request_free(&req);
+        MPI_Send(&buffer[slice][chunk_size-1][0], chunk_size, MPI_DOUBLE, lower, TO_LOWER, comm_3d);
       }
       // send to upper and recieve from upper
       if (upper >= 0) {
-        MPI_Request req;
-        MPI_Send(&buffer[slice][0][0], chunk_size, MPI_DOUBLE, upper, TO_UPPER, comm_3d, &req);
-        MPI_Request_free(&req);
-
+        MPI_Send(&buffer[slice][0][0], chunk_size, MPI_DOUBLE, upper, TO_UPPER, comm_3d);
         MPI_Recv(&upper_buffer[0], chunk_size, MPI_DOUBLE, upper, TO_LOWER, comm_3d, MPI_STATUS_IGNORE);
       }
       // recieve from lower
@@ -106,28 +101,19 @@ int main(int argc, char **argv) {
 
         // send first element of current row to left neighbour
         if (left >= 0) {
-          MPI_Request req;
-          MPI_Send(&buffer[slice][row][0], 1, MPI_DOUBLE, left, TO_LEFT, comm_3d, &req);
-          MPI_Request_free(&req);
+          MPI_Send(&buffer[slice][row][0], 1, MPI_DOUBLE, left, TO_LEFT, comm_3d);
         }
         // send last element of current row to right neigbour
         if (right >= 0) {
-          MPI_Request req;
-          MPI_Send(&buffer[slice][row][chunk_size - 1], 1, MPI_DOUBLE, right, TO_RIGHT, comm_3d, &req);
-          MPI_Request_free(&req);
+          MPI_Send(&buffer[slice][row][chunk_size - 1], 1, MPI_DOUBLE, right, TO_RIGHT, comm_3d);
         }
 
         if ((back >= 0) && (slice == chunk_size - 1)) {
-          MPI_Request req;
-          MPI_Send(&buffer[slice][row][0], chunk_size, MPI_DOUBLE, back, TO_BACK, comm_3d, &req);
-          MPI_Request_free(&req);
+          MPI_Send(&buffer[slice][row][0], chunk_size, MPI_DOUBLE, back, TO_BACK, comm_3d);
         }
 
         if ((front >= 0) && (slice == 0)) {
-          MPI_Request req;
-          MPI_Send(&buffer[slice][row][0], chunk_size, MPI_DOUBLE, front, TO_FRONT, comm_3d, &req);
-          MPI_Request_free(&req);
-
+          MPI_Send(&buffer[slice][row][0], chunk_size, MPI_DOUBLE, front, TO_FRONT, comm_3d);
           MPI_Recv(&front_buffer[0], chunk_size, MPI_DOUBLE, front, TO_BACK, comm_3d, MPI_STATUS_IGNORE);
         }
 
