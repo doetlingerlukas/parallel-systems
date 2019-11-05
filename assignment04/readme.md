@@ -17,6 +17,18 @@ For performance, head to the measurements section.
 
 ## Measurments
 
+All measurements have been done on the LCC2.
+
+### 3D stencil sequential
+
+| samples | sequential [s] |
+| -: | -: |
+| 32 | < 1 |
+| 64 | 12 |
+| 72 | 22 |
+| 80 | 34 |
+| 128 | 221 |
+
 ### 3D stencil - Slabs
 
 | samples | sequential | 4 ranks (non-blocking) | 8 ranks (non-blocking) |
@@ -52,23 +64,35 @@ For performance, head to the measurements section.
 
 ### 3D stencil - Cubes
 
-| samples | sequential | 8 ranks (non-blocking) | 8 ranks (blocking) |
-| -: | -: | -: | -: |
-| 32 | < 1 second | < 1 second | < 1 second |
-| 64 | 6 seconds | 10 seconds | 10 seconds |
-| 128 | 95 seconds | 138 seconds | 139 seconds |
-| 256 | 1429 seconds | 1782 seconds | 1769 seconds |
+Non-blocking communication:
 
+| samples | 8 ranks [s] | speedup 8 ranks | efficiency 8 ranks |
+| -: | -: | -: | -: |
+| 32 | < 1 | ~ 1 | 0.125 |
+| 64 | 10 | 1.2 | 0.15 |
+| 72 | 14 | 1.57 | 0.196 |
+| 80 | 20 | 1.7 | 0.2125 |
+| 128 | 138 | 1.6 | 0.2 |
+
+Blocking communication:
+
+| samples | 8 ranks [s] | speedup 8 ranks | efficiency 8 ranks |
+| -: | -: | -: | -: |
+| 32 | < 1 | ~ 1 | 0.125 |
+| 64 | 10 | 1.2 | 0.15 |
+| 72 | 14 | 1.57 | 0.196 |
+| 80 | 21 | 1.62 | 0.2025 |
+| 128 | 139 | 1.59 | 0.199 |
 
 ### 3D stencil - Poles
 
-| samples | sequential [s] | 4 ranks (blocking) [s] | 4 ranks (non-blocking) [s] |
-| -: | -: | -: | -: |
-| 32 | <1 | 1 | 1 | 
-| 64 | 12 | 19 | 19 |
-| 72 | 22 | 29 | 29 |
-| 80 | 34 | 43 | 41 |
-| 128 | 221 | 257 | 254 |
+| samples | 4 ranks (blocking) [s] | 4 ranks (non-blocking) [s] |
+| -: | -: | -: |
+| 32 | 1 | 1 | 
+| 64 | 19 | 19 |
+| 72 | 29 | 29 |
+| 80 | 43 | 41 |
+| 128 | 257 | 254 |
 
 | speedup (blocking) | efficiency (blocking) | speedup (non-blocking) | efficiency (non-blocking)
 | -: | -: | -: | -: |
