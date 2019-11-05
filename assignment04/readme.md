@@ -65,7 +65,15 @@ For performance, head to the measurements section.
 | samples | sequential [s] | 4 ranks (blocking) [s] | 4 ranks (non-blocking) [s] |
 | -: | -: | -: | -: |
 | 32 | <1 | 1 | 1 | 
-| 64 | 6 | 19 | 19 |
-| 80 | 53 | 43 | 41 |
-| 128 | 95 | 257 | 254 |
+| 64 | 12 | 19 | 19 |
+| 72 | 22 | 29 | 29 |
+| 80 | 34 | 43 | 41 |
+| 128 | 221 | 257 | 254 |
 
+| speedup (blocking) | efficiency (blocking) | speedup (non-blocking) | efficiency (non-blocking)
+| -: | -: | -: | -: |
+| 1 | 0.25 | 1 | 0.25 |
+| 0.63 | 0.16 | 0.63 | 0.16 |
+| 0.76 | 0.19 | 0.76 | 0.19 |
+| 0.79 | 0.20 | 0.83 | 0.21 |
+| 0.86 | 0.22 | 0.87 | 0.22 |
