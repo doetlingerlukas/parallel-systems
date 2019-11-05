@@ -17,6 +17,39 @@ For performance, head to the measurements section.
 
 ## Measurments
 
+### 3D stencil - Slabs
+
+| samples | sequential | 4 ranks (non-blocking) | 8 ranks (non-blocking) |
+| -: | -: | -: | -: |
+| 32 | 0,807 | 0,567 | 0,524 |
+| 64 | 12,885 | 7,462 | 5,646 |
+| 72 | 35,282 | 10,849 | 8,110 |
+| 80 | 53,723 | 16,486 | 10,958 |
+
+| speedup 8p8 (non-blocking) | efficiency 8p8 (non-blocking) | speedup 4p4 (non-blocking) | efficiency 4p4 (non-blocking)
+| -: | -: | -: | -: |
+| 1,540 | 0,193	| 1,423	| 0,356
+| 2,282	| 0,285	| 1,727	| 0,432
+| 4,350	| 0,544	| 3,252	| 0,813
+| 4,903	| 0,613	| 3,259	| 0,815
+
+
+| samples | sequential | 4 ranks (blocking) | 8 ranks (blocking) |
+| -: | -: | -: | -: |
+| 32 | 0,807 | 0,657 | 0,532
+| 64 | 12,885 | 7,698 | 4,964
+| 72 | 35,282 | 12,244 | 7,776
+| 80 | 53,723 | 16,495 | 10,700
+
+| speedup 8p8 (blocking) | efficiency 8p8 (blocking) | speedup 4p4 (blocking) | efficiency 4p4 (blocking)
+| -: | -: | -: | -: |
+| 1,517 | 0,190	| 1,228	| 0,307
+| 2,596 | 0,324	| 1,674	| 0,418
+| 4,537	| 0,567	| 2,882	| 0,720
+| 5,021	| 0,628	| 3,257	| 0,814
+
+
+
 ### 3D stencil - Cubes
 
 | samples | sequential | 8 ranks (non-blocking) | 8 ranks (blocking) |
