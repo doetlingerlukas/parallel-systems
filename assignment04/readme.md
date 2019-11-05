@@ -58,3 +58,14 @@ For performance, head to the measurements section.
 | 64 | 6 seconds | 10 seconds | 10 seconds |
 | 128 | 95 seconds | 138 seconds | 139 seconds |
 | 256 | 1429 seconds | 1782 seconds | 1769 seconds |
+
+
+### 3D stencil - Poles
+
+| samples | sequential [s] | 4 ranks (blocking) [s] | 4 ranks (non-blocking) [s] |
+| -: | -: | -: | -: |
+| 32 | <1 | 1 | 1 | 
+| 64 | 6 | 19 | 19 |
+| 80 | 53 | 43 | 41 |
+| 128 | 95 | 257 | 254 |
+

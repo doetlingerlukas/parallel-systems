@@ -27,8 +27,6 @@ int main(int argc, char **argv) {
     N = strtol(argv[1], nullptr, 10);
   }
   auto timesteps = N*100;
-
-  cout << "3D heat stencil implemented with poles, blocking ..." << endl;
   
   auto start_time = chrono::high_resolution_clock::now();
 
