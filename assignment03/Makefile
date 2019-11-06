@@ -1,27 +1,23 @@
-CC = mpic++
-CPP = g++
-CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
+CXX := g++
+CXX_FLAGS := -O2 -std=c++17 -Wall -Wextra -pedantic
 
-TARGETS = heat_stencil_2D_seq heat_stencil_3D_seq heat_stencil_3D_mpi
+TARGETS = $(sort $(patsubst %.cpp,%,$(wildcard *_seq.cpp)))
+
+ifneq ($(OS), Windows_NT)
+	CXX = mpic++
+	TARGETS += $(sort $(patsubst %.cpp,%,$(wildcard *_mpi.cpp)))
+endif
 
 .PHONEY: all
-all: heat_stencil_2D_seq heat_stencil_3D_seq heat_stencil_2D_mpi heat_stencil_3D_mpi
+all: $(TARGETS)
 
-.PHONEY: seq
-seq: heat_2D_seq heat_3D_seq
-
-heat_stencil_2D_seq: heat_stencil_2D_seq.cpp
-	$(CPP) $(CPP_FLAGS) $< -o heat_stencil_2D_seq
-
-heat_stencil_2D_mpi: heat_stencil_2D_mpi.cpp
-	$(CC) $(CPP_FLAGS) $< -o heat_stencil_2D_mpi
-
-heat_stencil_3D_seq: heat_stencil_3D_seq.cpp
-	$(CPP) $(CPP_FLAGS) $< -o heat_stencil_3D_seq
-
-heat_stencil_3D_mpi: heat_stencil_3D_mpi.cpp
-	$(CC) $(CPP_FLAGS) $< -o heat_stencil_3D_mpi
+$(TARGETS): %: %.o
+	$(CXX) $(CXX_FLAGS) $^ -o $@
 
 .PHONEY: clean
 clean:
-	$(RM) $(TARGETS)
+ifeq ($(OS), Windows_NT)
+	del -rf $(patsubst %, %.exe, $(TARGETS)) $(patsubst %, %.o, $(TARGETS))
+else
+	$(RM) $(TARGETS) $(patsubst %, %.o, $(TARGETS))
+endif
