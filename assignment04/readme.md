@@ -101,3 +101,13 @@ Blocking communication:
 | 0.76 | 0.19 | 0.76 | 0.19 |
 | 0.79 | 0.20 | 0.83 | 0.21 |
 | 0.86 | 0.22 | 0.87 | 0.22 |
+
+
+## Graphs
+
+![](results/time.png)
+
+![](results/speedup.png)
+
+![](results/efficiency.png)
+
