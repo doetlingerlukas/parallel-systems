@@ -2,16 +2,15 @@
 #include <vector>
 #include <random>
 #include <time.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
 constexpr double G = 1.0;
 constexpr double M = 1.0;
 
-double fRand(double min, double max){
-    double f = (double)rand() / RAND_MAX;
-    return min + f * (max - min);
-}
+double fRand(double min, double max);
 
 class Particle {
     private:
@@ -85,39 +84,19 @@ class Particle {
 
 };
 
-void printParticleVector(vector<Particle> particles){
-    for (size_t i = 0; i < particles.size(); i++){
-        particles[i].printParticle();
-    }
-}
-
-void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
-    vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
-    for (auto i = 0; i < N; i++){
-        Particle temp = particles[i];
-        result2D[temp.getX()][temp.getY()] = (char)temp.getId() + 65;
-    }
-
-     for (auto i = 0; i < Nx; i++){
-        for (auto j = 0; j < Ny; j++){
-            cout << result2D[i][j];
-        }
-        cout << endl;
-    }
-}
-
-
+void printParticleVector(vector<Particle> particles);
+void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny);
 
 int main(){
 
     //room size
-    int Nx = 5;
+    int Nx = 20;
     int Ny = 20;
 
     //number of particles
     int N = 10;
 
-    int timesteps = 5;
+    int timesteps = 1000;
 
     srand(time(NULL));
 
@@ -141,6 +120,46 @@ int main(){
         cout << "timestep :" << t << endl;
         //printParticleVector(particles);
         printParticleVector2D(particles, N, Nx, Ny);
+
+        // sleep to see movement happen
+        this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
+}
+
+double fRand(double min, double max){
+    double f = (double)rand() / RAND_MAX;
+    return min + f * (max - min);
+}
+
+void printParticleVector(vector<Particle> particles){
+    for (size_t i = 0; i < particles.size(); i++){
+        particles[i].printParticle();
+    }
+}
+
+void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
+    vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
+    for (auto i = 0; i < N; i++){
+        Particle temp = particles[i];
+        result2D[temp.getX()][temp.getY()] = 'x';
+    }
+
+    for (auto i = 0; i <= Nx+1; i++){
+        cout << "-";
+    }
+    cout << endl;
+
+    for (auto i = 0; i < Nx; i++){
+        cout << "|";
+        for (auto j = 0; j < Ny; j++){
+            cout << result2D[i][j];
+        }
+        cout << "|" << endl;
+    }
+
+    for (auto i = 0; i <= Nx+1; i++){
+        cout << "-";
+    }
+    cout << endl;
 }
