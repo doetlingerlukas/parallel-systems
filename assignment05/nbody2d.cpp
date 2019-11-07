@@ -37,6 +37,8 @@ class Particle {
         Particle(int Nx, int Ny, int i){
             px = fRand(0, Nx);
             py = fRand(0, Ny);
+            vx = fRand(0, 0.2);
+            vy = fRand(0, 0.2);
             id = i;
         }
 
@@ -89,13 +91,11 @@ void printParticleVector(vector<Particle> particles){
     }
 }
 
-void printParticleVector2D(vector<Particle> particles, int Nx, int Ny){
+void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
     vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
-    for (auto i = 0; i < Nx; i++){
-        for (auto j = 0; j < Ny; j++){
-            Particle temp = particles[i*Nx + j];
-            result2D[temp.getX()][temp.getY()] = (char)temp.getId() + 65;
-        }
+    for (auto i = 0; i < N; i++){
+        Particle temp = particles[i];
+        result2D[temp.getX()][temp.getY()] = (char)temp.getId() + 65;
     }
 
      for (auto i = 0; i < Nx; i++){
@@ -115,7 +115,7 @@ int main(){
     int Ny = 20;
 
     //number of particles
-    int N = 12;
+    int N = 10;
 
     int timesteps = 5;
 
@@ -140,7 +140,7 @@ int main(){
 
         cout << "timestep :" << t << endl;
         //printParticleVector(particles);
-        printParticleVector2D(particles, Nx, Ny);
+        printParticleVector2D(particles, N, Nx, Ny);
     }
 
 }
