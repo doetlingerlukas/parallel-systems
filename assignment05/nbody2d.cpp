@@ -34,9 +34,9 @@ class Particle {
 
         }
 
-        Particle(int N, int i){
-            px = fRand(0, N);
-            py = fRand(0, N);
+        Particle(int Nx, int Ny, int i){
+            px = fRand(0, Nx);
+            py = fRand(0, Ny);
             id = i;
         }
 
@@ -54,17 +54,31 @@ class Particle {
             return sqrt(dx*dx + dy*dy);
         }
 
+        int getX(){
+            return (int)px;
+        }
+
+        int getY(){
+            return (int)py;
+        }
+
         void calculateForce(Particle b){
             double F = G * (m * b.m) / getRadius(b) * getRadius(b);
             fx = F * (px - b.px) / getRadius(b);
             fy = F * (py - b.py) / getRadius(b);
         }
 
-        void update(){
+        void update(int Nx, int Ny){
             vx += fx / m;
             vy += fy / M;
             px += vx;
             py += vy;
+
+            px = px < 0 ? 0 : px;
+            py = py < 0 ? 0 : py;
+
+            px = px > Nx-1 ? Nx-1 : px;
+            py = py > Ny-1 ? Ny-1 : py;
         }
 
 };
@@ -75,9 +89,34 @@ void printParticleVector(vector<Particle> particles){
     }
 }
 
+void printParticleVector2D(vector<Particle> particles, int Nx, int Ny){
+    vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
+    for (auto i = 0; i < Nx; i++){
+        for (auto j = 0; j < Ny; j++){
+            Particle temp = particles[i*Nx + j];
+            result2D[temp.getX()][temp.getY()] = (char)temp.getId() + 65;
+        }
+    }
+
+     for (auto i = 0; i < Nx; i++){
+        for (auto j = 0; j < Ny; j++){
+            cout << result2D[i][j];
+        }
+        cout << endl;
+    }
+}
+
+
+
 int main(){
 
-    int N = 5;
+    //room size
+    int Nx = 5;
+    int Ny = 20;
+
+    //number of particles
+    int N = 12;
+
     int timesteps = 5;
 
     srand(time(NULL));
@@ -85,7 +124,7 @@ int main(){
     vector<Particle> particles;
     particles.reserve(N);
     for (auto i = 0; i < N; i++){
-        particles.emplace_back(N, i+100);
+        particles.emplace_back(Nx-1, Ny-1, i);
     }
 
     for (auto t = 0; t < timesteps; t++){
@@ -96,11 +135,12 @@ int main(){
                     particles[i].calculateForce(particles[j]);
                 }
             }
-            particles[i].update();
+            particles[i].update(Nx, Ny);
         }
 
         cout << "timestep :" << t << endl;
-        printParticleVector(particles);
+        //printParticleVector(particles);
+        printParticleVector2D(particles, Nx, Ny);
     }
 
 }
