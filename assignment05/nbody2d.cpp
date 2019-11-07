@@ -52,15 +52,19 @@ class Particle {
         double getRadius(Particle b){
             double dx = px - b.px;
             double dy = py - b.py;
-            return sqrt(dx*dx + dy*dy);
+            double r = sqrt(dx*dx + dy*dy);
+            if (!isnan(r)){ // needed to avoid division by 0 in calculateForce function
+                r = 0.01;
+            }
+            return r;
         }
 
         int getX(){
-            return (int)px;
+            return (int) px;
         }
 
         int getY(){
-            return (int)py;
+            return (int) py;
         }
 
         void calculateForce(Particle b){
@@ -75,8 +79,8 @@ class Particle {
             px += vx;
             py += vy;
 
-            px = px < 0 ? 0 : px;
-            py = py < 0 ? 0 : py;
+            px = px < 0.0 ? 0.0 : px;
+            py = py < 0.0 ? 0.0 : py;
 
             px = px > Nx-1 ? Nx-1 : px;
             py = py > Ny-1 ? Ny-1 : py;
@@ -96,7 +100,7 @@ int main(){
     //number of particles
     int N = 10;
 
-    int timesteps = 1000;
+    int timesteps = 500;
 
     srand(time(NULL));
 
@@ -122,7 +126,7 @@ int main(){
         printParticleVector2D(particles, N, Nx, Ny);
 
         // sleep to see movement happen
-        this_thread::sleep_for(std::chrono::milliseconds(500));
+        //this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
 }
@@ -142,6 +146,7 @@ void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
     vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
     for (auto i = 0; i < N; i++){
         Particle temp = particles[i];
+        //cout << temp.getX() << ", " << temp.getY()<<endl;
         result2D[temp.getX()][temp.getY()] = 'x';
     }
 
