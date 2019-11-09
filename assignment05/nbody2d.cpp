@@ -4,11 +4,12 @@
 #include <time.h>
 #include <chrono>
 #include <thread>
+#include <cassert>
 
 using namespace std;
 
-constexpr double G = 1.0;
-constexpr double M = 1.0;
+constexpr double G = 1;
+constexpr double M = 1;
 
 double fRand(double min, double max);
 
@@ -19,30 +20,16 @@ class Particle {
         double vx, vy; // velocity
         double fx, fy; // force
         double m = M; // mass
-        int id = -1;
 
     public:
 
         Particle(){}
 
-        Particle(double px, double py, double vx, double vy, double fx, double fy, double m)
-            :px(px) ,py(py)
-            ,vx(vx) ,vy(vy)
-            ,fx(fx) ,fy(fy)
-            ,m(m){
-
-        }
-
-        Particle(int Nx, int Ny, int i){
+        Particle(int Nx, int Ny){
             px = fRand(0, Nx);
             py = fRand(0, Ny);
-            vx = fRand(0, 0.2);
-            vy = fRand(0, 0.2);
-            id = i;
-        }
-
-        int getId(){
-            return id;
+            vx = fRand(0, 1.0);
+            vy = fRand(0, 1.0);
         }
 
         void printParticle(){
@@ -53,9 +40,6 @@ class Particle {
             double dx = px - b.px;
             double dy = py - b.py;
             double r = sqrt(dx*dx + dy*dy);
-            if (!isnan(r)){ // needed to avoid division by 0 in calculateForce function
-                r = 0.01;
-            }
             return r;
         }
 
@@ -68,22 +52,39 @@ class Particle {
         }
 
         void calculateForce(Particle b){
-            double F = G * (m * b.m) / getRadius(b) * getRadius(b);
-            fx = F * (px - b.px) / getRadius(b);
-            fy = F * (py - b.py) / getRadius(b);
+            double rad = getRadius(b);
+            assert(rad > 0.0);
+            double F = G * (m * b.m) / (rad * rad);
+            fx = F * (px - b.px) / rad;
+            fy = F * (py - b.py) / rad;
         }
 
         void update(int Nx, int Ny){
             vx += fx / m;
-            vy += fy / M;
+            vy += fy / m;
             px += vx;
             py += vy;
+            
+            // handle egde cases, flip velocity sign if on border
+            if (px < 0.0){
+                px = 0.0;
+                vx = -vx;
+            } else if (px > Nx-1){
+                px = Nx-1;
+                vx = -vx;
+            }
+            if (py < 0.0){
+                py = 0.0;
+                vy = -vy;
+            } else if (py > Ny-1){
+                py = Ny-1;
+                vy = -vy;
+            }
+        }
 
-            px = px < 0.0 ? 0.0 : px;
-            py = py < 0.0 ? 0.0 : py;
-
-            px = px > Nx-1 ? Nx-1 : px;
-            py = py > Ny-1 ? Ny-1 : py;
+        void resetForce(){
+            fx = 0.0;
+            fy = 0.0;
         }
 
 };
@@ -100,19 +101,20 @@ int main(){
     //number of particles
     int N = 10;
 
-    int timesteps = 500;
+    int timesteps = N;
 
     srand(time(NULL));
 
     vector<Particle> particles;
     particles.reserve(N);
     for (auto i = 0; i < N; i++){
-        particles.emplace_back(Nx-1, Ny-1, i);
+        particles.emplace_back(Nx, Ny);
     }
 
     for (auto t = 0; t < timesteps; t++){
         
         for (int i = 0; i < N; ++i) {
+            particles[i].resetForce();
             for (int j = 0; j < N; ++j) {
                 if (i != j) {
                     particles[i].calculateForce(particles[j]);
@@ -122,17 +124,17 @@ int main(){
         }
 
         cout << "timestep :" << t << endl;
-        //printParticleVector(particles);
+
         printParticleVector2D(particles, N, Nx, Ny);
 
         // sleep to see movement happen
-        //this_thread::sleep_for(std::chrono::milliseconds(500));
+        this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
 }
 
 double fRand(double min, double max){
-    double f = (double)rand() / RAND_MAX;
+    double f = ((double)rand()-1) / RAND_MAX;
     return min + f * (max - min);
 }
 
