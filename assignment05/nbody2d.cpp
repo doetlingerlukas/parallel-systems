@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main(){
+int main(int argc, char **argv){
 
   //room size
   int Nx = 20;
@@ -15,7 +15,11 @@ int main(){
   //number of particles
   int N = 10;
 
-  int timesteps = N;
+  if (argc > 1) {
+    N = strtol(argv[1], nullptr, 10);
+  }
+
+  int timesteps = N * 10;
 
   srand(time(NULL));
 
