@@ -14,14 +14,13 @@ constexpr double M = 1;
 double fRand(double min, double max);
 
 class Particle {
-  private:
 
-    double px, py; // position
-    double vx, vy; // velocity
-    double fx, fy; // force
-    double m = M; // mass
+  double vx, vy; // velocity
+  double fx, fy; // force
+  double m = M; // mass
 
   public:
+    double px, py; // position
 
     Particle(){}
 
@@ -41,14 +40,6 @@ class Particle {
       double dy = py - b.py;
       double r = sqrt(dx*dx + dy*dy);
       return r;
-    }
-
-    int getX(){
-      return (int) px;
-    }
-
-    int getY(){
-      return (int) py;
     }
 
     void calculateForce(Particle b){
@@ -86,7 +77,6 @@ class Particle {
       fx = 0.0;
       fy = 0.0;
     }
-
 };
 
 void printParticleVector(vector<Particle> particles);
@@ -128,7 +118,7 @@ int main(){
     printParticleVector2D(particles, N, Nx, Ny);
 
     // sleep to see movement happen
-    this_thread::sleep_for(std::chrono::milliseconds(500));
+    //this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
 }
@@ -148,8 +138,8 @@ void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
   vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
   for (auto i = 0; i < N; i++){
     Particle temp = particles[i];
-    //cout << temp.getX() << ", " << temp.getY()<<endl;
-    result2D[temp.getX()][temp.getY()] = 'x';
+    //cout << temp.py << ", " << temp.py<<endl;
+    result2D[temp.px][temp.py] = 'x';
   }
 
   for (auto i = 0; i <= Nx+1; i++){
