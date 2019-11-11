@@ -8,6 +8,8 @@ using namespace std;
 
 int main(int argc, char **argv){
 
+  auto start_time = chrono::high_resolution_clock::now();
+
   //room size
   int Nx = 20;
   int Ny = 20;
@@ -19,7 +21,7 @@ int main(int argc, char **argv){
     N = strtol(argv[1], nullptr, 10);
   }
 
-  int timesteps = N * 10;
+  int timesteps = N * 2;
 
   srand(time(NULL));
 
@@ -49,4 +51,10 @@ int main(int argc, char **argv){
     this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
+  auto end_time = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+  cout << endl;
+  cout << "This took " << duration << " seconds." << endl;
+
+  return EXIT_SUCCESS;
 }

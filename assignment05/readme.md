@@ -14,9 +14,9 @@ Use the included `Makefile` to compile the program.
 
 ### Measurements
 
-We used a room size of *50 x 50* and *samples x 10* timesteps.
+We used a room size of *20 x 20* and *particles x 2* timesteps.
 
-| samples | sequential [s] |
+| particles | sequential [s] |
 | -: | -: |
 | 10 | < 1 |
 
