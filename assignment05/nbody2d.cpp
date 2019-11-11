@@ -21,7 +21,7 @@ int main(int argc, char **argv){
     N = strtol(argv[1], nullptr, 10);
   }
 
-  int timesteps = N * 2;
+  int timesteps = 20;
 
   srand(time(NULL));
 

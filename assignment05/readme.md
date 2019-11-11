@@ -14,13 +14,17 @@ Use the included `Makefile` to compile the program.
 
 ### Measurements
 
-We used a room size of *20 x 20* and *particles x 2* timesteps.
+We used *20* timesteps for testing. All measurements were done on `lcc2`.
 
-| particles | sequential [s] |
-| -: | -: |
-| 10 | < 1 |
-
-
+| room size | particles | sequential [s] |
+| -: | -: | -: |
+| 20² | 10 | 10 |
+| 20² | 20 | 10 |
+| 20² | 50 | 10 |
+| 20² | 100 | 10 |
+| 20² | 200 | 10 |
+| 100² | 1000 | 10 |
+| 500² | 5000 | 27 |
 
 ## Task 2
 
