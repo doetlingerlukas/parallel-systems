@@ -34,6 +34,8 @@ One approach to optimize the program, would be to only compute the forces for pa
 
 So what does this exactly mean? When we compute the force for a particle, we calculate the impact all particles have on the current one. We do this by calculating the *radius* between two particles, which we then use to determine how much impact they have on one another. We could omit the *force*-calculation if the radius is big enough, so the two particlase don't impact each other.
 
+Our current approach computes each force twice (once for each of the two particles), so another optimization would be to compute the force just once for each particle pair.
+
 ### Parallelization
 
 **Approach 1**
@@ -49,3 +51,9 @@ We could split the room size among the ranks. Since our simulation uses uniforml
 Using the method from our *optimization* approach, a rank could determine, which particles impact particles in another ranks part of the room. If we also were to use a *Cartesian Topology* for the ranks, we can easily determine the neighbours. After updating all positions and forces, a rank would then have to notify it's neighbours about the changed particles, that impact their room. For particles that leave the room a rank would have to send them over to the next rank.
 
 This approach minimizes the needed communication, while still splitting the problem size almost evenly compared to *Approach 1*.
+
+
+### Resources
+Our implementation was influenced by:
+* http://physics.princeton.edu/~fpretori/Nbody/code.htm
+* https://codereview.stackexchange.com/questions/87341/brute-force-n-body-implementation-in-c?rq=1
