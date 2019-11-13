@@ -2,12 +2,14 @@
 #ifndef PARTICLE_HPP
 #define PARTICLE_HPP
 
+constexpr double G = 1.0;
+constexpr double M = 1.0;
+
 class Particle {
 
   double vx, vy; // velocity
   double fx, fy; // force
-  // mass, defaults to 1
-  double m = 1;
+  double m = M; // mass
 
   public:
     double px, py; // position
@@ -20,7 +22,6 @@ class Particle {
     double getRadius(Particle b);
     void calculateForce(Particle b);
     void update(int Nx, int Ny);
-    void resetForce();
 };
 
 #endif
