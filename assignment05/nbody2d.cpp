@@ -23,8 +23,9 @@ int main(int argc, char **argv){
 
   int timesteps = 20;
 
-  srand(time(NULL));
+  srand(42);
 
+  // initialize particles (randomly)
   vector<Particle> particles;
   particles.reserve(N);
   for (auto i = 0; i < N; i++){
@@ -32,9 +33,8 @@ int main(int argc, char **argv){
   }
 
   for (auto t = 0; t < timesteps; t++) {
-    
+    // at each timestep, calculate the forces between each pair of particles
     for (int i = 0; i < N; ++i) {
-      particles[i].resetForce();
       for (int j = 0; j < N; ++j) {
         if (i != j) {
           particles[i].calculateForce(particles[j]);
@@ -51,6 +51,7 @@ int main(int argc, char **argv){
     this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
+  // time measurement
   auto end_time = chrono::high_resolution_clock::now();
   auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
   cout << endl;

@@ -6,7 +6,6 @@
 
 using namespace std;
 
-constexpr double G = 1;
 
 double fRand(double min, double max){
   double f = ((double)rand()-1) / RAND_MAX;
@@ -28,7 +27,6 @@ Particle::Particle(int Nx, int Ny, int M) {
   m = M;
 }
 
-
 void Particle::printParticle() {
   cout << "position: (" << px << ", " << py << ")" <<endl;
 }
@@ -47,8 +45,6 @@ void Particle::calculateForce(Particle b){
   fx = F * (px - b.px) / rad;
   fy = F * (py - b.py) / rad;
 }
-
-    
 
 void Particle::update(int Nx, int Ny){
   vx += fx / m;
@@ -71,9 +67,4 @@ void Particle::update(int Nx, int Ny){
     py = Ny-1;
     vy = -vy;
   }
-}
-
-void Particle::resetForce(){
-  fx = 0.0;
-  fy = 0.0;
 }
