@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 
   int timesteps = 20;
 
-  srand(42);
+  srand(time(NULL));
 
   // initialize particles (randomly)
   vector<Particle> particles;
@@ -32,17 +32,20 @@ int main(int argc, char **argv){
     particles.emplace_back(Nx, Ny);
   }
 
+  vector<Particle> buffer = particles;
+
   for (auto t = 0; t < timesteps; t++) {
     // at each timestep, calculate the forces between each pair of particles
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
         if (i != j) {
-          particles[i].calculateForce(particles[j]);
+          buffer[i].calculateForce(particles[j]);
         }
       }
-      particles[i].update(Nx, Ny);
+      buffer[i].update(Nx, Ny);
     }
 
+    particles = buffer;
     cout << "timestep :" << t << endl;
 
     printParticleVector2D(particles, N, Nx, Ny);
