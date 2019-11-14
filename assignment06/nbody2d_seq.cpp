@@ -11,11 +11,11 @@ int main(int argc, char **argv){
   auto start_time = chrono::high_resolution_clock::now();
 
   //room size
-  int Nx = 20;
-  int Ny = 20;
+  int Nx = 500;
+  int Ny = 500;
 
   //number of particles
-  int N = 10;
+  int N = 5000;
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
@@ -38,7 +38,13 @@ int main(int argc, char **argv){
     // at each timestep, calculate the forces between each pair of particles
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
-        if (i != j) {
+        if(buffer[i].checkInRange(buffer[j])){
+          continue;
+        }
+        if(j < i){
+          buffer[i].updateForce(buffer[j]);
+        }
+        else if (i > j) {
           buffer[i].calculateForce(particles[j]);
         }
       }
@@ -48,10 +54,10 @@ int main(int argc, char **argv){
     particles = buffer;
     cout << "timestep :" << t << endl;
 
-    printParticleVector2D(particles, N, Nx, Ny);
+    //printParticleVector2D(particles, N, Nx, Ny);
 
     // sleep to see movement happen
-    this_thread::sleep_for(std::chrono::milliseconds(500));
+    //this_thread::sleep_for(std::chrono::milliseconds(500));
   }
 
   // time measurement

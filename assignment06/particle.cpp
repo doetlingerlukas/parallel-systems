@@ -38,12 +38,24 @@ double Particle::getRadius(Particle b){
   return r;
 }
 
+bool Particle::checkInRange(Particle b){
+  if(getRadius(b) > THRESHOLD){
+    return true;
+  }
+  return false;
+}
+
 void Particle::calculateForce(Particle b){
   double rad = getRadius(b);
   assert(rad > 0.0);
   double F = G * (m * b.m) / (rad * rad);
   fx = F * (px - b.px) / rad;
   fy = F * (py - b.py) / rad;
+}
+
+void Particle::updateForce(Particle b){
+  fx = -b.fx;
+  fy = -b.fy;
 }
 
 void Particle::update(int Nx, int Ny){
