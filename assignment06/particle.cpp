@@ -39,7 +39,7 @@ double Particle::getRadius(Particle b){
 }
 
 bool Particle::checkInRange(Particle b){
-  if(getRadius(b) > THRESHOLD){
+  if(getRadius(b) < THRESHOLD){
     return true;
   }
   return false;
