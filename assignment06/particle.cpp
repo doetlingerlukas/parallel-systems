@@ -19,14 +19,6 @@ Particle::Particle(int Nx, int Ny) {
   vy = fRand(0, 1.0);
 }
 
-Particle::Particle(int Nx, int Ny, int M) {
-  px = fRand(0, Nx);
-  py = fRand(0, Ny);
-  vx = fRand(0, 1.0);
-  vy = fRand(0, 1.0);
-  m = M;
-}
-
 void Particle::printParticle() {
   cout << "position: (" << px << ", " << py << ")" <<endl;
 }
@@ -79,4 +71,9 @@ void Particle::update(int Nx, int Ny){
     py = Ny-1;
     vy = -vy;
   }
+}
+
+Particle_data Particle::toStruct(){
+  Particle_data p = {vx, vy, fx, fy, px, py};
+  return p;
 }

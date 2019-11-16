@@ -2,13 +2,16 @@ CC = mpic++
 CPP = g++
 CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
 
-TARGETS = nbody2d_seq
+TARGETS = nbody2d_seq nbody2d_mpi
 
 .PHONEY: all
-all: nbody2d_seq
+all: nbody2d_seq nbody2d_mpi
 
 nbody2d_seq: nbody2d_seq.cpp
 	$(CPP) $(CPP_FLAGS) $< particle.cpp -o nbody2d_seq
+
+nbody2d_mpi: nbody2d_mpi.cpp
+	$(CC) $(CPP_FLAGS) $< particle.cpp -o nbody2d_mpi
 
 .PHONEY: clean
 clean:
