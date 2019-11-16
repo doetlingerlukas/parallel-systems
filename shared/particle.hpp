@@ -23,6 +23,7 @@ class Particle {
     double px, py; // position
     double fx, fy; // force
     double vx, vy; // velocity
+    int rank_id;
 
     Particle(){}
     Particle(int Nx, int Ny);

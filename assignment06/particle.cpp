@@ -19,6 +19,14 @@ Particle::Particle(int Nx, int Ny) {
   vy = fRand(0, 1.0);
 }
 
+Particle::Particle(int Nx, int Ny, int id) {
+  px = fRand(0, Nx);
+  py = fRand(0, Ny);
+  vx = fRand(0, 1.0);
+  vy = fRand(0, 1.0);
+  rank_id = id;
+}
+
 void Particle::printParticle() {
   cout << "position: (" << px << ", " << py << ")" <<endl;
 }
