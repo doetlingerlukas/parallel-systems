@@ -39,7 +39,11 @@ bool Particle::checkInRange(Particle b){
 
 void Particle::calculateForce(Particle b){
   double rad = getRadius(b);
-  assert(rad > 0.0);
+  //assert(rad > 0.0);
+  if (!(rad > 0.0)){
+    rad = 0.001;
+  }
+
   double F = G * (m * b.m) / (rad * rad);
   fx = F * (px - b.px) / rad;
   fy = F * (py - b.py) / rad;

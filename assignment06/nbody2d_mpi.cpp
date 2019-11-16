@@ -25,7 +25,7 @@ int main(int argc, char **argv){
   auto start_time = chrono::high_resolution_clock::now();
 
   //room size
-  int N = 10;
+  int N = 20;
 
   //number of particles
   int P = 12;
@@ -77,15 +77,12 @@ int main(int argc, char **argv){
   for (auto t = 0; t < timesteps; t++) {
 
     // class to struct
-    vector<Particle_data> local_buffer_data(P_rank);
+    vector<Particle_data> local_buffer_data(P);
     for (int i = 0; i < P_rank; ++i) {
       local_buffer_data[i] = local_buffer[i].toStruct();
     }
 
-    // gather data
-    assert(local_buffer_data.size()*number_of_ranks == global_buffer_data.size());
-
-    MPI_Allgather(&local_buffer_data[0], P_rank, MPI_particle, &global_buffer_data[0], P, MPI_particle, MPI_COMM_WORLD);
+    MPI_Allgather(&local_buffer_data[0], P_rank, MPI_particle, &global_buffer_data[0], P_rank, MPI_particle, MPI_COMM_WORLD);
 
     // struct to data
     for (int i = 0; i < P; ++i){

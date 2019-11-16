@@ -15,7 +15,7 @@ int main(int argc, char **argv){
   int Ny = 20;
 
   //number of particles
-  int N = 10;
+  int N = 20;
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 
   int timesteps = 20;
 
-  srand(time(NULL));
+  srand(42);
 
   // initialize particles (randomly)
   vector<Particle> particles;
