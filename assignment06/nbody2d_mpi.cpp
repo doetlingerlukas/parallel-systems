@@ -89,12 +89,27 @@ int main(int argc, char **argv){
       global_buffer[i] = toParticle(global_buffer_data[i]);
     }
 
+    if (rank_id == 0)
+      cout << "timestep: " << t << endl<<endl;
+
     for (int i = 0; i < P_rank; ++i) {
+      if (rank_id == 0){
+        cout << i << endl;
+        local_buffer[i].printParticle();
+        cout << endl;
+      }
       for (int j = 0; j < P; ++j) {
+        if (rank_id == 0){
+          if (j % 3 == 0)
+            cout << endl;
+          global_buffer[j].printParticle();
+        }
+        
         if (i + (rank_id * P_rank) != j) {
           local_buffer[i].calculateForce(global_buffer[j]);
         }
       }
+      cout << endl;
       local_buffer[i].update(N_rank, N_rank);
     }
 
