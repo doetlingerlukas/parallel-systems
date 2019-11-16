@@ -31,7 +31,6 @@ int main(int argc, char **argv){
   int P = 12;
 
   int timesteps = 20;
-  srand(42);
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
@@ -43,6 +42,8 @@ int main(int argc, char **argv){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank_id);
   MPI_Comm_size(MPI_COMM_WORLD, &number_of_ranks);
 
+  srand(rank_id);
+
   auto P_rank = P / number_of_ranks;
 
   // split problem size among ranks
@@ -53,9 +54,6 @@ int main(int argc, char **argv){
     MPI_Finalize();
     return EXIT_FAILURE;
   }
-  int ranks_per_row = sqrt(number_of_ranks);
-
-  int N_rank = N / ranks_per_row;
 
   // initialize particles (randomly)
   vector<Particle> local_buffer;
@@ -77,7 +75,7 @@ int main(int argc, char **argv){
   for (auto t = 0; t < timesteps; t++) {
 
     // class to struct
-    vector<Particle_data> local_buffer_data(P);
+    vector<Particle_data> local_buffer_data(P_rank);
     for (int i = 0; i < P_rank; ++i) {
       local_buffer_data[i] = local_buffer[i].toStruct();
     }
@@ -89,28 +87,13 @@ int main(int argc, char **argv){
       global_buffer[i] = toParticle(global_buffer_data[i]);
     }
 
-    if (rank_id == 0)
-      cout << "timestep: " << t << endl<<endl;
-
     for (int i = 0; i < P_rank; ++i) {
-      if (rank_id == 0){
-        cout << i << endl;
-        local_buffer[i].printParticle();
-        cout << endl;
-      }
       for (int j = 0; j < P; ++j) {
-        if (rank_id == 0){
-          if (j % 3 == 0)
-            cout << endl;
-          global_buffer[j].printParticle();
-        }
-        
         if (i + (rank_id * P_rank) != j) {
           local_buffer[i].calculateForce(global_buffer[j]);
         }
       }
-      cout << endl;
-      local_buffer[i].update(N_rank, N_rank);
+      local_buffer[i].update(N, N);
     }
 
     if (rank_id == 0){
