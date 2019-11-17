@@ -1,7 +1,7 @@
 #include "./particle.hpp"
 
-#include <iostream>
 #include <vector>
+#include <cmath>
 
 using namespace std;
 
@@ -12,31 +12,39 @@ void printParticleVector(vector<Particle> particles){
 }
 
 void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
-  vector<vector<char>> result2D(Nx, vector<char>(Ny, ' '));
+  const char *colors = " .-:=+*^X#%@";
+  const int numColors = 12;
+
+  vector<vector<int>> result2D(Ny, vector<int>(Nx, 0));
+  const double widthStep = 1.0 / (double) Nx;
+  const double heightStep = 1.0 / (double) Ny;
 
   // set particles in result
   for (auto i = 0; i < N; i++){
-    Particle temp = particles[i];
-    result2D[temp.px][temp.py] = 'x';
+    double y = floor(particles[i].py / heightStep);
+    double x = floor(particles[i].px / widthStep);
+    cout << particles[i].py << " " << particles[i].px << endl;
+    result2D[y-1][x-1] += 1;
   }
 
   // print upper border
-  for (auto i = 0; i <= Nx+1; i++){
+  for (auto i = 0; i < Nx+2; i++) {
     cout << "-";
   }
 
   // print 2D result vector
   cout << endl;
-  for (auto i = 0; i < Nx; i++){
+  for (auto i = 0; i < Ny; i++) {
     cout << "|";
-    for (auto j = 0; j < Ny; j++){
-      cout << result2D[i][j];
+    for (auto j = 0; j < Nx; j++) {
+      char c = result2D[i][j] >= numColors ? colors[numColors-1] : colors[result2D[i][j]];
+      cout << c;
     }
     cout << "|" << endl;
   }
 
   // print lower border
-  for (auto i = 0; i <= Nx+1; i++){
+  for (auto i = 0; i < Nx+2; i++) {
     cout << "-";
   }
   cout << endl;

@@ -21,16 +21,14 @@ int main(int argc, char **argv){
     N = strtol(argv[1], nullptr, 10);
   }
 
-  int timesteps = 20;
+  int timesteps = 10;
 
-  srand(42);
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
 
   // initialize particles (randomly)
-  vector<Particle> particles;
-  particles.reserve(N);
-  for (auto i = 0; i < N; i++){
-    particles.emplace_back(Nx, Ny);
-  }
+  vector<Particle> particles(N, Particle(0, seed));
+  printParticleVector2D(particles, N, Nx, Ny);
 
   vector<Particle> buffer = particles;
 
@@ -42,7 +40,7 @@ int main(int argc, char **argv){
           buffer[i].calculateForce(particles[j]);
         }
       }
-      buffer[i].update(Nx, Ny);
+      buffer[i].update();
     }
 
     particles = buffer;

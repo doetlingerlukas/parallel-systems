@@ -8,7 +8,7 @@ TARGETS = nbody2d
 all: nbody2d
 
 nbody2d: nbody2d.cpp
-	$(CPP) $(CPP_FLAGS) $< particle.cpp -o nbody2d
+	$(CPP) $(CPP_FLAGS) $< -o nbody2d
 
 .PHONEY: clean
 clean:
