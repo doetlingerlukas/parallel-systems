@@ -24,7 +24,7 @@ void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
     double y = floor(particles[i].py / heightStep);
     double x = floor(particles[i].px / widthStep);
     cout << particles[i].py << " " << particles[i].px << endl;
-    result2D[y-1][x-1] += 1;
+    result2D[y > 0 ? y-1 : y][x > 0 ? x-1 : x] += 1;
   }
 
   // print upper border
