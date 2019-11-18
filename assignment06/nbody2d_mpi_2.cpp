@@ -47,12 +47,12 @@ int main(int argc, char **argv){
   int N = 1000;
 
   //number of particles
-  int P = 5000;
+  int P = 1000;
 
-  int timesteps = 20;
+  int timesteps = 1000;
 
   if (argc > 1) {
-    N = strtol(argv[1], nullptr, 10);
+    P = strtol(argv[1], nullptr, 10);
   }
 
   // MPI init
@@ -140,9 +140,9 @@ int main(int argc, char **argv){
   // time measurement
   if (rank_id == 0){
     auto end_time = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
     cout << endl;
-    cout << "This took " << duration << " seconds." << endl;
+    cout << "This took " << duration << " milliseconds." << endl;
   }
 
   MPI_Finalize();

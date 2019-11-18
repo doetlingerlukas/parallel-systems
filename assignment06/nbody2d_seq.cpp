@@ -15,13 +15,13 @@ int main(int argc, char **argv){
   int Ny = 1000;
 
   //number of particles
-  int N = 250;
+  int N = 1000;
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
 
-  int timesteps = 100;
+  int timesteps = 1000;
 
   srand(42);
 
