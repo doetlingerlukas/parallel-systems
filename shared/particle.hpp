@@ -31,8 +31,9 @@ class Particle {
 
     Particle(){}
 
-    Particle(int id, unsigned seed) {
-      mt19937 gen(seed);
+    Particle(int id) {
+      random_device rd;
+      mt19937 gen(rd());
       uniform_real_distribution<double> dis(0.0, 1.0);
 
       px = dis(gen);

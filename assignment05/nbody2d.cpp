@@ -24,10 +24,11 @@ int main(int argc, char **argv){
   int timesteps = 10;
 
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  mt19937 gen(seed);
 
 
   // initialize particles (randomly)
-  vector<Particle> particles(N, Particle(0, seed));
+  vector<Particle> particles(N, Particle(0));
   printParticleVector2D(particles, N, Nx, Ny);
 
   vector<Particle> buffer = particles;
