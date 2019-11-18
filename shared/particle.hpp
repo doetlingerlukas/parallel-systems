@@ -34,6 +34,8 @@ class Particle {
     double vx, vy; // velocity
     int rank_id;
 
+    Particle(){}
+
     Particle(int Nx, int Ny, int rank) {
       px = fRand(0.0, Nx);
       py = fRand(0.0, Ny);
