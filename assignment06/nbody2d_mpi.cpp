@@ -28,12 +28,12 @@ int main(int argc, char **argv){
   int N = 1000;
 
   //number of particles
-  int P = 5000;
+  int P = 1000;
 
-  int timesteps = 20;
+  int timesteps = 1000;
 
   if (argc > 1) {
-    N = strtol(argv[1], nullptr, 10);
+    P = strtol(argv[1], nullptr, 10);
   }
 
   // MPI init
@@ -59,7 +59,7 @@ int main(int argc, char **argv){
   vector<Particle> local_buffer;
   local_buffer.reserve(P_rank);
   for (auto i = 0; i < P_rank; i++){
-    local_buffer.emplace_back(N, N); 
+    local_buffer.emplace_back(N, N, rank_id); 
   }
 
   MPI_Datatype MPI_particle;
@@ -71,11 +71,11 @@ int main(int argc, char **argv){
 
   vector<Particle> global_buffer(P);
   vector<Particle_data> global_buffer_data(P);
+  vector<Particle_data> local_buffer_data(P_rank);
 
   for (auto t = 0; t < timesteps; t++) {
 
     // class to struct
-    vector<Particle_data> local_buffer_data(P_rank);
     for (int i = 0; i < P_rank; ++i) {
       local_buffer_data[i] = local_buffer[i].toStruct();
     }
@@ -105,7 +105,7 @@ int main(int argc, char **argv){
   // time measurement
   if (rank_id == 0){
     auto end_time = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+    auto duration = chrono::duration<double>(end_time - start_time).count();
     cout << endl;
     cout << "This took " << duration << " seconds." << endl;
   }

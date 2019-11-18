@@ -11,27 +11,26 @@ int main(int argc, char **argv){
   auto start_time = chrono::high_resolution_clock::now();
 
   //room size
-  int Nx = 20;
-  int Ny = 20;
+  int Nx = 100;
+  int Ny = 100;
 
   //number of particles
-  int N = 20;
+  int N = 75;
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
 
-  int timesteps = 20;
-
+  int timesteps = N;
   srand(42);
 
   // initialize particles (randomly)
   vector<Particle> particles;
   particles.reserve(N);
   for (auto i = 0; i < N; i++){
-    particles.emplace_back(Nx, Ny);
+    particles.emplace_back(Nx, Ny, 0);
   }
-
+  
   vector<Particle> buffer = particles;
 
   for (auto t = 0; t < timesteps; t++) {
@@ -51,7 +50,7 @@ int main(int argc, char **argv){
     printParticleVector2D(particles, N, Nx, Ny);
 
     // sleep to see movement happen
-    this_thread::sleep_for(std::chrono::milliseconds(500));
+    this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
   // time measurement
