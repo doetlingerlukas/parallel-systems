@@ -1,6 +1,6 @@
-# Assignment 6, due November 20th 2019
+# Assignment 6
 
-The goal of this assignment is to implement your parallelization and optimization plan of the n-body simulation of Assignment 5.
+*by Andreas Peintner, Josef Gugglberger and Lukas Dötlinger*
 
 ## Exercise 1
 
@@ -10,11 +10,24 @@ The goal of this assignment is to implement your parallelization and optimizatio
 - Measure the speedup and efficiency for multiple problem and machine sizes as in previous exercises.
 - Illustrate the data in appropriate figures and discuss them. What can you observe?
 
-## General Notes
+### Implementation
 
-All the material required by the tasks above (e.g. code, figures, etc...) must be part of the solution that is handed in. Your experiments should be reproducible and comparable to your own measurements using the solution materials that you hand in. For source code, please provide a makefile or other, intuitive means of compiling with the required flags and settings.
+For assignment05, we came up with 2 different approaches for parallelization, splitting the area or splitting the problem size.
 
-**Every** member of your group must be able to explain the given problem, your solution, and possible findings. You may also need to answer detailed questions about any of these aspects.
+We tried to split the computation area, which ended up in a *communication-overhead-mess*. Therefore we devided the problem size among the ranks.
 
-**Please run any benchmarks or heavy CPU loads only on the compute nodes, not on the login node.**
-If you want to do some interactive experimentation, use an *interactive job* as outlined in the tutorial. Make sure to stop any interactive jobs once you are done.
+We have three implementations:
+- `nbody_seq`, a sequential version
+- `nbody_mpi`, an unoptimized mpi version
+- `nbody_mpi_2`, the optimized mpi version
+
+### Measurements 
+
+All tests were done on `lcc2` with 1000 timesteps.
+
+| particles | sequential [s] | mpi_basic (4 ranks) [s] | mpi_advanced (4 ranks) [s] | mpi_advanced (16 ranks) [s] |
+| -: | -: | -: | -: | -: |
+| 500 | 2.39 | 2.75 | 0.62 | 0.33 |
+| 1000 | 8.31 | 8.86 | 2.15 | 0.44 |
+| 2000 | 31.54 | 33.33 | 8.23 | 0.87 |
+| 5000 | 192.64 | 203.14 | 50.97 | 3.66 |
