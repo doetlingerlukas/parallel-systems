@@ -9,6 +9,11 @@ constexpr double G = 1.0;
 constexpr double M = 1.0;
 constexpr double THRESHOLD = 5.0;
 
+double fRand(double min, double max){
+  double f = ((double)rand()-1) / RAND_MAX;
+  return min + f * (max - min);
+}
+
 // struct representation of particle, for sending
 typedef struct {
   double vx;
@@ -29,18 +34,12 @@ class Particle {
     double vx, vy; // velocity
     int rank_id;
 
-    Particle(){}
-
-    Particle(int id) {
-      random_device rd;
-      mt19937 gen(rd());
-      uniform_real_distribution<double> dis(0.0, 1.0);
-
-      px = dis(gen);
-      py = dis(gen);
-      vx = dis(gen);
-      vy = dis(gen);
-      rank_id = id;
+    Particle(int Nx, int Ny, int rank) {
+      px = fRand(0.0, Nx);
+      py = fRand(0.0, Ny);
+      vx = fRand(0.0, 1.0);
+      vy = fRand(0.0, 1.0);
+      rank_id = rank;
     }
 
     void printParticle() {
@@ -72,7 +71,7 @@ class Particle {
       fy = -b.fy;
     }
 
-    void update() {
+    void update(int Nx, int Ny) {
       vx += fx / m;
       vy += fy / m;
       px += vx;
@@ -82,15 +81,15 @@ class Particle {
       if (px < 0.0){
         px = 0.0;
         vx = -vx;
-      } else if (px > 1.0){
-        px = 1.0;
+      } else if (px > Nx){
+        px = Nx-1;
         vx = -vx;
       }
       if (py < 0.0){
         py = 0.0;
         vy = -vy;
-      } else if (py > 1.0){
-        py = 1.0;
+      } else if (py > Ny){
+        py = Ny-1;
         vy = -vy;
       }
     }
