@@ -140,9 +140,9 @@ int main(int argc, char **argv){
   // time measurement
   if (rank_id == 0){
     auto end_time = chrono::high_resolution_clock::now();
-    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count();
+    auto duration = chrono::duration<double>(end_time - start_time).count();
     cout << endl;
-    cout << "This took " << duration << " milliseconds." << endl;
+    cout << "This took " << duration << " seconds." << endl;
   }
 
   MPI_Finalize();

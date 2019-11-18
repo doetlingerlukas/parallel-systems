@@ -57,12 +57,12 @@ int main(int argc, char **argv){
     printParticleVector2D(particles, N, Nx, Ny);
 
     // sleep to see movement happen
-    this_thread::sleep_for(std::chrono::milliseconds(50));
+    //this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
   // time measurement
   auto end_time = chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
+  auto duration = chrono::duration<double>(end_time - start_time).count();
   cout << endl;
   cout << "This took " << duration << " seconds." << endl;
 

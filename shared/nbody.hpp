@@ -8,8 +8,8 @@ using namespace std;
 void printParticleVector2D(vector<Particle> particles, int N, int Nx, int Ny){
   const char *colors = " .-:=+*^X#%@";
   const int numColors = 12;
-  const double resX = 50.0;
-  const double resY = 20.0;
+  const double resX = 120.0;
+  const double resY = 40.0;
 
   vector<vector<int>> result2D(resY, vector<int>(resX, 0));
   const double widthStep = (double) Nx / resX;
