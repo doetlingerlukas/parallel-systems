@@ -82,14 +82,14 @@ class Particle {
         px = 0.0;
         vx = -vx;
       } else if (px > Nx){
-        px = Nx-1;
+        px = Nx;
         vx = -vx;
       }
       if (py < 0.0){
         py = 0.0;
         vy = -vy;
       } else if (py > Ny){
-        py = Ny-1;
+        py = Ny;
         vy = -vy;
       }
     }
