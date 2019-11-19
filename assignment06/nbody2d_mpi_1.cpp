@@ -46,15 +46,6 @@ int main(int argc, char **argv){
 
   auto P_rank = P / number_of_ranks;
 
-  // split problem size among ranks
-  if (fmod(sqrtf(number_of_ranks), 1) != 0) {
-    if (rank_id == 0) {
-      cout <<  "Rank size must be a square number!" << endl;
-    }
-    MPI_Finalize();
-    return EXIT_FAILURE;
-  }
-
   // initialize particles (randomly)
   vector<Particle> local_buffer;
   local_buffer.reserve(P_rank);
@@ -73,7 +64,7 @@ int main(int argc, char **argv){
   vector<Particle_data> global_buffer_data(P);
   vector<Particle_data> local_buffer_data(P_rank);
 
-  for (auto t = 0; t < timesteps; t++) {
+  for (int t = 0; t < timesteps; t++) {
 
     // class to struct
     for (int i = 0; i < P_rank; ++i) {
@@ -98,7 +89,7 @@ int main(int argc, char **argv){
 
     if (rank_id == 0){
       cout << "timestep :" << t << endl;
-      printParticleVector2D(global_buffer, P, N, N);
+      //printParticleVector2D(global_buffer, P, N, N);
     }
   }
 

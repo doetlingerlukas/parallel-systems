@@ -7,7 +7,7 @@ using namespace std;
 
 constexpr double G = 1.0;
 constexpr double M = 1.0;
-constexpr double THRESHOLD = 5.0;
+constexpr double THRESHOLD = 200.0;
 
 double fRand(double min, double max){
   double f = ((double)rand()-1) / RAND_MAX;

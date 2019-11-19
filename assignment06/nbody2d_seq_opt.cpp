@@ -22,6 +22,7 @@ int main(int argc, char **argv){
   }
 
   int timesteps = 1000;
+
   srand(42);
 
   // initialize particles (randomly)
@@ -30,14 +31,20 @@ int main(int argc, char **argv){
   for (auto i = 0; i < N; i++){
     particles.emplace_back(Nx, Ny, 0);
   }
-  
+
   vector<Particle> buffer = particles;
 
   for (auto t = 0; t < timesteps; t++) {
     // at each timestep, calculate the forces between each pair of particles
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
-        if (i != j) {
+        if(!buffer[i].checkInRange(buffer[j])){
+          continue;
+        }
+        if(j < i){
+          buffer[i].updateForce(buffer[j]);
+        }
+        else if (i > j) {
           buffer[i].calculateForce(particles[j]);
         }
       }
