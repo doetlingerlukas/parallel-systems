@@ -16,18 +16,20 @@ For assignment05, we came up with 2 different approaches for parallelization, sp
 
 We tried to split the computation area, which ended up in a *communication-overhead-mess*. Therefore we devided the problem size among the ranks.
 
-We have three implementations:
+We have four (working) implementations:
 - `nbody_seq`, a sequential version
-- `nbody_mpi`, an unoptimized mpi version
-- `nbody_mpi_2`, the optimized mpi version
+- `nbody_seq_opt`, a sequential optimized version
+- `nbody_mpi_1`, an unoptimized mpi version
+- `nbody_mpi_1_opt`, the optimized mpi version
 
 ### Measurements 
 
 All tests were done on `lcc2` with 1000 timesteps.
 
-| particles | sequential [s] | mpi_basic (4 ranks) [s] | mpi_advanced (4 ranks) [s] | mpi_advanced (16 ranks) [s] |
+| particles | sequential [s] | seq_opt [s] | mpi (4 ranks) [s] | 4 mpi_opt (4 ranks) [s] |
 | -: | -: | -: | -: | -: |
-| 500 | 2.39 | 2.75 | 0.62 | 0.33 |
-| 1000 | 8.31 | 8.86 | 2.15 | 0.44 |
-| 2000 | 31.54 | 33.33 | 8.23 | 0.87 |
-| 5000 | 192.64 | 203.14 | 50.97 | 3.66 |
+| 500 | 8.3 | 2.4 | 2.7 | 0.7 |
+| 1000 | 32.1 | 9.5 | 8.3 | 2.2 |
+| 1500 | 71.8 | 21.3 | 18.5 | 4.9 |
+| 2000 | 127.7 | 37.7 | 32.6 | 8.4 |
+| 2500 | 199.3 | 59 | 50.6 |  |
