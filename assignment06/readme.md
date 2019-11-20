@@ -26,10 +26,10 @@ We have four (working) implementations:
 
 All tests were done on `lcc2` with 1000 timesteps.
 
-| particles | sequential [s] | seq_opt [s] | mpi (4 ranks) [s] | 4 mpi_opt (4 ranks) [s] |
-| -: | -: | -: | -: | -: |
-| 500 | 8.3 | 2.4 | 2.7 | 0.7 |
-| 1000 | 32.1 | 9.5 | 8.3 | 2.2 |
-| 1500 | 71.8 | 21.3 | 18.5 | 4.9 |
-| 2000 | 127.7 | 37.7 | 32.6 | 8.4 |
-| 2500 | 199.3 | 59 | 50.6 |  |
+| particles | sequential [s] | seq_opt [s] | mpi (4 ranks) [s] | 4 mpi_opt (4 ranks) [s] | mpi (16 ranks) [s] | mpi opt (16 ranks) |
+| -: | -: | -: | -: | -: | -: | -: |
+| 500 | 8.3 | 2.4 | 2.7 | 0.7 | 1.7 | 1.4 |
+| 1000 | 32.1 | 9.5 | 8.3 | 2.2 | 4.1 | 2.9 |
+| 1500 | 71.8 | 21.3 | 18.5 | 4.9 | 5.9 | 3.1 |
+| 2000 | 127.7 | 37.7 | 32.6 | 8.4 | 9.8 | 4.5 |
+| 2500 | 199.3 | 59 | 50.6 | 17.8 | 15.9 | 6.2 |
