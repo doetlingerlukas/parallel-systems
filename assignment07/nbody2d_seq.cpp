@@ -15,13 +15,14 @@ int main(int argc, char **argv){
   int Ny = 1000;
 
   //number of particles
-  int N = 500;
+  int N = 1000;
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
 
   int timesteps = 1000;
+
   srand(42);
 
   // initialize particles (randomly)
@@ -30,14 +31,17 @@ int main(int argc, char **argv){
   for (auto i = 0; i < N; i++){
     particles.emplace_back(Nx, Ny, 0);
   }
-  
+
   vector<Particle> buffer = particles;
 
   for (auto t = 0; t < timesteps; t++) {
     // at each timestep, calculate the forces between each pair of particles
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
-        if (i != j) {
+        if(j < i){
+          buffer[i].updateForce(buffer[j]);
+        }
+        else if (i > j) {
           buffer[i].calculateForce(particles[j]);
         }
       }

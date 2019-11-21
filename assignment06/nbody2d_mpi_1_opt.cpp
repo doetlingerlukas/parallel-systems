@@ -81,15 +81,13 @@ int main(int argc, char **argv){
     for (int i = 0; i < P_rank; ++i) {
       for (int j = 0; j < P; ++j) {
         if (i + (rank_id * P_rank) != j) {
-            if(!local_buffer[i].checkInRange(global_buffer[j])){
-                continue;
-            }
-            if(j < i){
-                local_buffer[i].updateForce(global_buffer[j]);
-            }
-            else if (i > j) {
-                local_buffer[i].calculateForce(global_buffer[j]);
-            }
+          
+          if(j < i){
+              local_buffer[i].updateForce(global_buffer[j]);
+          }
+          else if (i > j) {
+              local_buffer[i].calculateForce(global_buffer[j]);
+          }
         }
       }
       local_buffer[i].update(N, N);
@@ -97,7 +95,7 @@ int main(int argc, char **argv){
 
     if (rank_id == 0){
       cout << "timestep :" << t << endl;
-      //printParticleVector2D(global_buffer, P, N, N);
+      printParticleVector2D(global_buffer, P, N, N);
     }
   }
 

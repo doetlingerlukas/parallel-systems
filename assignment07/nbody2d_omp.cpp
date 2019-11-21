@@ -15,7 +15,7 @@ int main(int argc, char **argv){
   int Ny = 1000;
 
   //number of particles
-  int N = 2500;
+  int N = 1000;
 
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);

@@ -38,9 +38,6 @@ int main(int argc, char **argv){
     // at each timestep, calculate the forces between each pair of particles
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < N; ++j) {
-        if(!buffer[i].checkInRange(buffer[j])){
-          continue;
-        }
         if(j < i){
           buffer[i].updateForce(buffer[j]);
         }

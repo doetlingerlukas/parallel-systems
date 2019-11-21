@@ -89,7 +89,7 @@ int main(int argc, char **argv){
 
     if (rank_id == 0){
       cout << "timestep :" << t << endl;
-      //printParticleVector2D(global_buffer, P, N, N);
+      printParticleVector2D(global_buffer, P, N, N);
     }
   }
 
