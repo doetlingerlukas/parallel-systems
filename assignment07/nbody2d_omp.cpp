@@ -15,7 +15,7 @@ int main(int argc, char **argv){
   int Ny = 1000;
 
   //number of particles
-  int N = 1000;
+  int N = 100;
   bool print = false;
 
   if (argc > 1) {
@@ -40,7 +40,7 @@ int main(int argc, char **argv){
   for (auto t = 0; t < timesteps; t++) {
     // at each timestep, calculate the forces between each pair of particles
     int i, j;
-    #pragma omp parallel for private(j)
+    #pragma omp parallel for private(j) schedule(static, 100)
     for (i = 0; i < N; ++i) {
       for (j = 0; j < N; ++j) {
         if(j < i){
