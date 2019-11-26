@@ -21,7 +21,8 @@ int main(int argc, char **argv){
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
     if (argc > 2) {
-      print = (argv[2] == "true");
+      string verbose = argv[2];
+      print = verbose == "--verbose";
     }
   }
 
