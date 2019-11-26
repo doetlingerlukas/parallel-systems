@@ -12,11 +12,17 @@
 
 ### Implementation
 
-- ...
+To parallelize our n-body application we add the statement `#pragma omp parallel for private(j)` (line 43) to our n-body implementation of assignment 6. While the ***explicitly*** written down line seems to be very simple, ***impliclitly*** there is going on much here. At first the directive `pragma omp parallel for` is some syntactic sugar, which opens a `parallel` region that contains a single `for` directive (so you save one line + curly brackets for the parallel region). The iteration variable of the inner loop, `j`, is declared private, meaning that each thread has a local copy of that variable. The iteration variable of the outer loop, `i`, is private per default (defined by the `for` directive). Variables declared outside the scope of the parallel region are shared per default in the parallel region. 
 
 ### Instructions
 
-- start with ```qsub -sync yes -pe openmp 2 job.sh -n 2 -p 'nbody2d_omp 10000```
+Our parallelized application of the n-body problem can be executed on LCC2 with the following line:
+
+```
+qsub -sync yes -pe openmp T job.sh -n T -p 'nbody2d_omp N [--verbose]'
+```
+
+where `T` represents the number of threads that should be assigned to the job, and `N` represents how many particles should be generated. If `---verbose` is specified, the particles are printed at every timestep.
 
 ### Measurements 
 
