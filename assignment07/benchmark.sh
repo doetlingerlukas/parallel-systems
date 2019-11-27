@@ -5,7 +5,7 @@ prog_file="nbody.dat"
 result_file="result.dat"
 
 if [ ! -z "$1" ] ; then
-  program+=" ${1}"
+  program="${1}"
 fi
 
 # remove result file if it already exists
