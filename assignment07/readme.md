@@ -26,116 +26,24 @@ where `T` represents the number of threads that should be assigned to the job, a
 
 ### Measurements 
 
-We provide a small benchmark via the shell script `benchmark.sh`. For running a benchmark execute:
+We provide a small benchmark via the shell script [benchmark.sh](./benchmark.sh). For running a benchmark execute:
 
 ```
 ./benchmark.sh 'nbody2d_omp N'
 ```
 where `N` represents the number of particles.
 
-All tests were done on LCC2 with 1000 timesteps.
+All tests were done on LCC2 with 1000 timesteps. The data is provided in [this](./measurements/measurements.ods) spreadsheet.
 
-**default scheduling**
-
-threads 8
-n
-1000    0.528908
-2500     2.47735
-5000     9.56892
-10000   40.3562
-25000   226.171
-
-threads 6
-n
-1000    0.567412
-2500    3.40505 
-5000    12.6464 
-10000   49.5635
-
-threads 4
-n
-1000    0.776759
-2500    4.41846
-5000    16.9959
-10000   66.6381
-
-threads 2
-n
-1000    1.25902
-2500    7.6515
-5000    30.0491
-10000   119.275 
-
-threads 1
-n
-1000    1.73471
-2500    11.5217 
-5000    46.4206 
-10000   186.026 
-
-**static scheduling:**
-
-threads 8
-n
-1000    0.55
-2500    2.28
-5000    8.60
-10000   28.1703
-25000   169.32
-
-threads 7
-n
-1000    0.55
-2500    2.39
-5000    8.16
-10000   32.1686 
-
-threads 6
-n
-1000    0.56
-2500    2.78
-5000    9.83
-10000   36.7641  
-
-threads 5
-n
-1000    0.56
-2500    3.05
-5000    11.57
-10000   43.4891  
-
-threads 4
-n
-1000    0.68
-2500    3.49
-5000    13.72
-10000   53.0103   
-
-threads 3
-n
-1000    0.81
-2500    4.43
-5000    17.01
-10000   71.0239 
-
-threads 2
-n
-1000    1.03
-2500    6.22
-5000    23.9
-10000   98.2047  
-
-threads 1
-n
-1000    1.73
-2500    11.52
-5000    46.32
-10000   195.658
-
-ranks 64 (mpi 1 opt)
-n
-25000   104.997
 
 ### Figures
 
-![](...)
+![](./measurements/time.png)
+
+![](./measurements/speedup.png)
+
+![](./measurements/efficiency.png)
+
+![](./measurements/time_comp.png)
+
+![](./measurements/speedup_comp.png)
