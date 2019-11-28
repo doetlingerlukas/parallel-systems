@@ -30,35 +30,42 @@ int main(int argc, char **argv) {
   auto source_y = N/4;
   A[source_x][source_y] = 273 + 60;
 
-  for (auto t = 0; t < T; t++) {
+  #pragma omp parallel
+  {
+    for (auto t = 0; t < T; t++) {
 
-    #pragma omp parallel for collapse(2)
-    for (auto i = 0; i < N; i++) {
-      for (auto j = 0; j < N; j++) {
+      #pragma omp for collapse(2)
+      for (auto i = 0; i < N; i++) {
+        for (auto j = 0; j < N; j++) {
 
-        if (i == source_x && j == source_y) {
-            B[i][j] = A[i][j];
-            continue;
+          if (i == source_x && j == source_y) {
+              B[i][j] = A[i][j];
+              continue;
+          }
+
+          auto t_current = A[i][j];
+
+          auto t_upper = (i != 0) ? A[i - 1][j] : t_current;
+          auto t_lower = (i != N - 1) ? A[i + 1][j] : t_current;
+          auto t_left = (j != 0) ? A[i][j - 1] : t_current;
+          auto t_right = (j != N - 1) ? A[i][j + 1] : t_current;
+
+          B[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));
+        }
+      }
+
+      #pragma omp single
+      {
+        if ((!(t % 1000) && print) || t == T-1) {
+          cout << "Step t= " << t << endl;
+          printTemperature(A, N, 80, 50);
+          cout << endl << endl;
         }
 
-        auto t_current = A[i][j];
-
-        auto t_upper = (i != 0) ? A[i - 1][j] : t_current;
-        auto t_lower = (i != N - 1) ? A[i + 1][j] : t_current;
-        auto t_left = (j != 0) ? A[i][j - 1] : t_current;
-        auto t_right = (j != N - 1) ? A[i][j + 1] : t_current;
-
-        B[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));
+        // swap matrices (just pointers, not content)
+        swap(A, B);
       }
     }
-    if (!(t % 1000) && print) {
-      cout << "Step t= " << t << endl;
-      printTemperature(A, N, 80, 50);
-      cout << endl << endl;
-    }
-
-    // swap matrices (just pointers, not content)
-    swap(A, B);
   }
 
   // verification
