@@ -4,42 +4,33 @@
 #include <chrono>
 #include <time.h>
 #include <thread>
+#include <omp.h>
 
 using namespace std;
 
-long samplesInsideCircle(const int chunkSize)
-{
-    long count = 0;
-    for (auto i=0; i <= chunkSize; i++){
-        double x = ((double) rand() / RAND_MAX);
-        double y = ((double) rand() / RAND_MAX);
-        if ((x * x + y * y) <= 1) {
-            count++;
-        }
-    }
-
-    return count;
-}
 
 int main(int argc, char **argv) {
 
-    auto samples = 10000000;
+    unsigned int seed;
+
+    auto samples = 1000000000;
 	if (argc > 1) {
         samples = strtol(argv[1], NULL, 10);
     }
 
     auto start_time = chrono::high_resolution_clock::now();
 
-    srand(time(NULL)); 
-
-    int numChunks = 8;
-    int chunk = samples / numChunks;
     long count = 0;
-
-    #pragma omp parallel for shared(numChunks, chunk) reduction(+:count)
-    for (int i = 0; i < numChunks; i++)
+    double x, y;
+    #pragma omp parallel private(seed, x, y) reduction(+:count) 
     {
-        count += samplesInsideCircle(chunk);
+        seed = time(NULL) * omp_get_thread_num();
+        #pragma omp for
+        for (int i = 0; i <= samples; i++) {
+            x = (double)rand_r(&seed) / RAND_MAX;
+            y = (double)rand_r(&seed) / RAND_MAX;
+            if (x*x + y*y <= 1) count++;
+        }
     }
 
     double pi = (4.0 * count) / samples; 
@@ -56,4 +47,4 @@ int main(int argc, char **argv) {
 }
 
 
-// http://jakascorner.com/blog/2016/05/omp-monte-carlo-pi.html
+// https://stackoverflow.com/questions/19489806/why-does-calculation-with-openmp-take-100x-more-time-than-with-a-single-thread/19535787#19535787
