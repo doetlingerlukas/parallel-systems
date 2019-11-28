@@ -39,10 +39,10 @@ int main(int argc, char **argv){
 
   for (auto t = 0; t < timesteps; t++) {
     // at each timestep, calculate the forces between each pair of particles
-    int i, j;
-    #pragma omp parallel for private(j) schedule(static, 100)
-    for (i = 0; i < N; ++i) {
-      for (j = 0; j < N; ++j) {
+
+    #pragma omp parallel for schedule(static, 100)
+    for (int i = 0; i < N; ++i) {
+      for (int j = 0; j < N; ++j) {
         if(j < i){
           buffer[i].updateForce(buffer[j]);
         }
