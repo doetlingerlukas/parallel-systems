@@ -8,8 +8,14 @@ int main(int argc, char **argv) {
 
   // problem size
   auto N = 100;
+  bool print = false;
+
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
+    if (argc > 2) {
+      string verbose = argv[2];
+      print = verbose == "--verbose";
+    }
   }
   auto T = N * 100;
   cout << "Computing heat-distribution for room size N=" << N << "*"<< N << " for T=" << T << " timesteps." << endl;
@@ -43,7 +49,7 @@ int main(int argc, char **argv) {
         B[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));
       }
     }
-    if (!(t % 1000)) {
+    if ((!(t % 1000) && print) || t == T-1) {
       cout << "Step t= " << t << endl;
       printTemperature(A, N, 80, 50);
       cout << endl << endl;
