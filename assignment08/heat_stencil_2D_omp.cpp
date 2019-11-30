@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   {
     for (auto t = 0; t < T; t++) {
 
-      #pragma omp for collapse(2)
+      #pragma omp for collapse(2) schedule(static, 100)
       for (auto i = 0; i < N; i++) {
         for (auto j = 0; j < N; j++) {
 
