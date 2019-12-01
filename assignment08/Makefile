@@ -1,22 +1,19 @@
-CC = mpic++
 CPP = g++
 CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
 OMP_FLAGS = -fopenmp
 
-TARGETS = pi_omp heat_stencil_2D_omp
+TARGETS = $(sort $(patsubst %.cpp,%,$(wildcard *_omp.cpp)))
 
 .PHONEY: all
-all: pi_omp heat_stencil_2D_omp matrix
+all: $(TARGETS)
 
-pi_omp: pi_omp.cpp
-	$(CPP) $(OMP_FLAGS) $(CPP_FLAGS) $< -o pi_omp
-
-heat_stencil_2D_omp: heat_stencil_2D_omp.cpp
-	$(CPP) $(OMP_FLAGS) $(CPP_FLAGS) $< -o heat_stencil_2D_omp
-
-matrix: matrix_mult_omp.cpp
-	$(CPP) $(CPP_FLAGS) $(OMP_FLAGS) $< -o matrix_mult_omp
+$(TARGETS): %: %.o
+	$(CPP) $(OMP_FLAGS) $(CPP_FLAGS) $< -o $@
 
 .PHONEY: clean
 clean:
-	$(RM) $(TARGETS)
+ifeq ($(OS), Windows_NT)
+	del -rf $(patsubst %, %.exe, $(TARGETS)) $(patsubst %, %.o, $(TARGETS))
+else
+	$(RM) $(TARGETS) $(patsubst %, %.o, $(TARGETS))
+endif
