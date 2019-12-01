@@ -1,4 +1,5 @@
 #include "../shared/matrix.hpp"
+#include <chrono>
 
 using namespace std;
 
@@ -7,13 +8,15 @@ void printMatrix(Matrix M);
 
 int main(int argc, char** argv) {
 
-  random_device rd;
-  mt19937 gen(rd());
+  unsigned seed1 = chrono::system_clock::now().time_since_epoch().count();
+  unsigned seed2 = chrono::system_clock::now().time_since_epoch().count() / 2;
+  mt19937 genA(seed1);
+  mt19937 genB(seed2);
 
   Matrix A(2, 2);
   Matrix B(2, 2);
-  A.randomInit(gen);
-  B.randomInit(gen);
+  A.randomInit(genA);
+  B.randomInit(genB);
 
   // Terminate if matrices can't be multiplied.
   if (A.columns != B.rows) {
@@ -48,11 +51,6 @@ Matrix multiplyMatrices(Matrix A, Matrix B) {
 }
 
 void printMatrix(Matrix M) {
-
-  // Print upper border.
-  for(size_t i = 0; i < M.columns + 2; i++) {
-
-  }
 
   for(size_t row = 0; row < M.rows; row++) {
     for(size_t col = 0; col < M.columns; col++) {
