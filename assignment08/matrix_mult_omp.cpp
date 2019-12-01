@@ -1,63 +1,45 @@
-#include <iostream>
-#include <vector>
-#include <random>
+#include "../shared/matrix.hpp"
 
 using namespace std;
 
-typedef struct {
-  size_t rows;
-  size_t columns;
-} matrix_size;
-
-vector<vector<long>> multiplyMatrices(vector<vector<long>> A, vector<vector<long>> B);
-void printMatrix(vector<vector<long>> m, matrix_size size);
+Matrix multiplyMatrices(Matrix A, Matrix B);
+void printMatrix(Matrix M);
 
 int main(int argc, char** argv) {
 
-  matrix_size default_size = { 10, 10 };
+  random_device rd;
+  mt19937 gen(rd());
 
-  matrix_size A_size = default_size;
-  matrix_size B_size = default_size;
+  Matrix A(2, 2);
+  Matrix B(2, 2);
+  A.randomInit(gen);
+  B.randomInit(gen);
 
   // Terminate if matrices can't be multiplied.
-  if (A_size.columns != B_size.rows) {
+  if (A.columns != B.rows) {
     cout << "Number of column at matrix A has to be equal to the amount of rows in matrix B!" << endl;
     return EXIT_FAILURE;
   }
 
-  // Initialize matrices randomly.
-  random_device rd;
-  mt19937 gen(rd());
-  uniform_int_distribution<int> dist(1, 100);
-
-  vector<vector<long>> A(A_size.rows, vector<long>(A_size.columns, 0));
-  vector<vector<long>> B(B_size.rows, vector<long>(B_size.columns, 0));
-
-  for(size_t i = 0; i < A_size.rows; i++) {
-    for(size_t j = 0; j < A_size.columns; i++) {
-      A[i][j] = dist(gen);
-    }
-  }
-  for(size_t i = 0; i < B_size.rows; i++) {
-    for(size_t j = 0; j < B_size.columns; i++) {
-      B[i][j] = dist(gen);
-    }
-  }
-
-  vector<vector<long>> result = multiplyMatrices(A, B);
-
+  cout << "Matrix A:" << endl;
+  printMatrix(A);
+  cout << endl << "Matrix B:" << endl;
+  printMatrix(B);
+  cout << endl << "A * B:" << endl;
+  Matrix result = multiplyMatrices(A, B);
+  printMatrix(result);
 
   return EXIT_SUCCESS;
 }
 
-vector<vector<long>> multiplyMatrices(vector<vector<long>> A, vector<vector<long>> B) {
-  vector<vector<long>> result(A.size(), vector<long>(B[0].size(), 0));
+Matrix multiplyMatrices(Matrix A, Matrix B) {
+  Matrix result(A.rows, B.columns);
 
   #pragma omp parallel for
-  for(size_t a_row = 0; a_row < A.size(); a_row++) {
-    for(size_t b_col = 0; b_col < B[0].size(); b_col++) {
-      for(size_t a_col = 0; a_col < A[0].size(); a_col++) {
-        result[a_row][b_col] += A[a_row][a_col] * B[a_col][b_col];
+  for(size_t a_row = 0; a_row < A.rows; a_row++) {
+    for(size_t b_col = 0; b_col < B.columns; b_col++) {
+      for(size_t a_col = 0; a_col < A.columns; a_col++) {
+        result.data[a_row][b_col] += A.data[a_row][a_col] * B.data[a_col][b_col];
       }
     }
   }
@@ -65,10 +47,17 @@ vector<vector<long>> multiplyMatrices(vector<vector<long>> A, vector<vector<long
   return result;
 }
 
-void printMatrix(vector<vector<long>> m, matrix_size size) {
+void printMatrix(Matrix M) {
 
   // Print upper border.
-  for(size_t i = 0; i < m[0].size() + 2; i++) {
+  for(size_t i = 0; i < M.columns + 2; i++) {
 
+  }
+
+  for(size_t row = 0; row < M.rows; row++) {
+    for(size_t col = 0; col < M.columns; col++) {
+      cout << M.data[row][col] << " ";
+    }
+    cout << endl;
   }
 }
