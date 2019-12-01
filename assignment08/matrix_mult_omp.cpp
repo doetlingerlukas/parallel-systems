@@ -3,18 +3,27 @@
 
 using namespace std;
 
-Matrix multiplyMatrices(Matrix A, Matrix B);
-void printMatrix(Matrix M);
-
 int main(int argc, char** argv) {
+
+  auto start_time = chrono::high_resolution_clock::now();
+  unsigned int N = 10;
+  bool print = false;
+
+  if (argc > 1) {
+    N = strtol(argv[1], nullptr, 10);
+    if (argc > 2) {
+      string verbose = argv[2];
+      print = verbose == "--verbose";
+    }
+  }
 
   unsigned seed1 = chrono::system_clock::now().time_since_epoch().count();
   unsigned seed2 = chrono::system_clock::now().time_since_epoch().count() / 2;
   mt19937 genA(seed1);
   mt19937 genB(seed2);
 
-  Matrix A(2, 2);
-  Matrix B(2, 2);
+  Matrix A(N, N);
+  Matrix B(N, N);
   A.randomInit(genA);
   B.randomInit(genB);
 
@@ -24,38 +33,22 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  cout << "Matrix A:" << endl;
-  printMatrix(A);
-  cout << endl << "Matrix B:" << endl;
-  printMatrix(B);
-  cout << endl << "A * B:" << endl;
-  Matrix result = multiplyMatrices(A, B);
-  printMatrix(result);
+  if (print) {
+    cout << "Matrix A:" << endl;
+    A.print();
+    cout << endl << "Matrix B:" << endl;
+    B.print();
+    cout << endl << "A * B:" << endl;
+    A.multiplyWith(B).print();
+  } else {
+    A.multiplyWith(B);
+  }
+
+  // Measure elapsed time.
+  auto end_time = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration<double>(end_time - start_time).count();
+  cout << endl;
+  cout << "This took " << duration << " seconds." << endl;
 
   return EXIT_SUCCESS;
-}
-
-Matrix multiplyMatrices(Matrix A, Matrix B) {
-  Matrix result(A.rows, B.columns);
-
-  #pragma omp parallel for
-  for(size_t a_row = 0; a_row < A.rows; a_row++) {
-    for(size_t b_col = 0; b_col < B.columns; b_col++) {
-      for(size_t a_col = 0; a_col < A.columns; a_col++) {
-        result.data[a_row][b_col] += A.data[a_row][a_col] * B.data[a_col][b_col];
-      }
-    }
-  }
-
-  return result;
-}
-
-void printMatrix(Matrix M) {
-
-  for(size_t row = 0; row < M.rows; row++) {
-    for(size_t col = 0; col < M.columns; col++) {
-      cout << M.data[row][col] << " ";
-    }
-    cout << endl;
-  }
 }
