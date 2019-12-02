@@ -41,9 +41,11 @@ class Matrix {
       #pragma omp parallel for
       for(size_t a_row = 0; a_row < rows; a_row++) {
         for(size_t b_col = 0; b_col < B.columns; b_col++) {
+          long dot_product = 0;
           for(size_t a_col = 0; a_col < columns; a_col++) {
-            result.data[a_row][b_col] += data[a_row][a_col] * B.data[a_col][b_col];
+            dot_product += data[a_row][a_col] * B.data[a_col][b_col];
           }
+          result.data[a_row][b_col] = dot_product;
         }
       }
       return result;
