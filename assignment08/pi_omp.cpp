@@ -4,6 +4,7 @@
 #include <chrono>
 #include <time.h>
 #include <thread>
+#include <math.h>
 #include <omp.h>
 
 using namespace std;
@@ -13,7 +14,7 @@ int main(int argc, char **argv) {
 
     unsigned int seed;
 
-    auto samples = 1000000000;
+    auto samples = pow (10.0, 7.0);
 	if (argc > 1) {
         samples = strtol(argv[1], NULL, 10);
     }
@@ -45,6 +46,3 @@ int main(int argc, char **argv) {
 
 	return EXIT_SUCCESS;
 }
-
-
-// https://stackoverflow.com/questions/19489806/why-does-calculation-with-openmp-take-100x-more-time-than-with-a-single-thread/19535787#19535787
