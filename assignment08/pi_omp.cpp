@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 
     unsigned int seed;
 
-    auto samples = pow (10.0, 7.0);
+    int samples = pow (10.0, 7.0);
 	if (argc > 1) {
         samples = strtol(argv[1], NULL, 10);
     }
