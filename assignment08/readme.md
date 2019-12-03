@@ -29,11 +29,22 @@ Our first intention to parallelize this program with OpenMP was to use the `coll
 #### Measurements
 
 | N | seq [s] | OpenMP 2 [s] | OpenMP 4 [s] | OpenMP 8 [s]
-| -: | -: | -: | -: | -: | -: | -: |
-200 | 4 | 2 | 1 | 0 |
-300 | 14 | 7 | 3 | 2 |
-500 | 66 | 33 | 16 | 9 |
-700 | 195 | 91 | 46 | 23 |
+| -: | -: | -: | -: | -: |
+| 200 | 4 | 2 | 1 | 0 |
+| 300 | 14 | 7 | 3 | 2 |
+| 500 | 66 | 33 | 16 | 9 |
+| 700 | 195 | 91 | 46 | 23 |
 
 ## Exercise 2
 
+The loop, which calculates a value in the new matrix, has been parallelized with `omp parallel for`. In addition to that, we sum up the subrusults of a new matrix-element in an additional variable and add it to the resulting matrix at the end. This reduces updates on the result matrix to a minimum, which is ideal, since the result matrix is shared among all threads.
+
+### Measurements
+
+| N | seq [s] | OpenMP 2 [s] | OpenMP 4 [s] | OpenMP 8 [s]
+| -: | -: | -: | -: | -: |
+| 500 | 0.68 | 0.35 | 0.2 | 0.12 |
+| 1000 | 8.87 | 4.78 | 2.4 | 1.39 |
+| 1500 | 31.9 | 16.29 | 8.83 | 5.07 |
+| 2000 | 78 | 40 | 21.74 | 12.66 |
+| 2500 | 150 | 81.6 | 44.5 | 25.29 |
