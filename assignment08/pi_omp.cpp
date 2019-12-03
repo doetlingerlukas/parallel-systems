@@ -12,8 +12,6 @@ using namespace std;
 
 int main(int argc, char **argv) {
 
-    unsigned int seed;
-
     int samples = pow (10.0, 7.0);
 	if (argc > 1) {
         samples = strtol(argv[1], NULL, 10);
@@ -22,14 +20,13 @@ int main(int argc, char **argv) {
     auto start_time = chrono::high_resolution_clock::now();
 
     long count = 0;
-    double x, y;
-    #pragma omp parallel private(seed, x, y) reduction(+:count) 
+    #pragma omp parallel reduction(+:count) 
     {
-        seed = time(NULL) * omp_get_thread_num();
+        unsigned int seed = time(NULL) * omp_get_thread_num();
         #pragma omp for
         for (int i = 0; i <= samples; i++) {
-            x = (double)rand_r(&seed) / RAND_MAX;
-            y = (double)rand_r(&seed) / RAND_MAX;
+            double x = (double)rand_r(&seed) / RAND_MAX;
+            double y = (double)rand_r(&seed) / RAND_MAX;
             if (x*x + y*y <= 1) count++;
         }
     }
