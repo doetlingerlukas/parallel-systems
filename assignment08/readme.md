@@ -50,3 +50,23 @@ The loop, which calculates a value in the new matrix, has been parallelized with
 | 1500 | 31.9 | 16.29 | 8.83 | 5.07 |
 | 2000 | 78 | 40 | 21.74 | 12.66 |
 | 2500 | 150 | 81.6 | 44.5 | 25.29 |
+
+## Figures
+
+### Monte Carlo Pi
+
+![](./measurements/pi.png)
+![](./measurements/pi_speedup.png)
+![](./measurements/pi_efficiency.png)
+
+### 2D heat stencil
+
+![](./measurements/heat.png)
+![](./measurements/heat_speedup.png)
+![](./measurements/heat_efficiency.png)
+
+### Matrix Multiplication
+
+![](./measurements/matrix.png)
+![](./measurements/matrix_speedup.png)
+![](./measurements/matrix_efficiency.png)
