@@ -16,15 +16,17 @@ Each thread has a local copy of its own *seed*, *x* and *y* values. Using the *r
 
 #### Measurements
 
-| N | Threads: 1 | Threads: 2 | Threads: 4 | Threads: 6 | Threads: 8 |
-| -: | -: | -: | -: | -: | -: | 
-| *10^6* | 21 ms | 22 ms | 22 ms | 22 ms | 22 ms |
-| *10^7* | 21 ms | 22 ms | 22 ms | 211 ms | 210 ms |
-| *10^8* | 21 ms | 22 ms | 22 ms | 211 ms | 210 ms |
+| N | seq [s] | OpenMP 2 [ms] | OpenMP 4 [ms] | OpenMP 8 [ms] |
+| -: | -: | -: | -: | -: | 
+| 10^6 | 37 ms | 8 ms | 4 ms | 2 ms |
+| 10^7 | 162 ms | 81 ms | 41 ms | 35 ms |
+| 10^8 | 1622 ms | 816 ms | 407 ms  | 212 ms |
+| 10^9 | 16252 ms | 8151 ms | 4069 ms | 2049 ms |
+
 
 ### 2D heat stencil with OpenMP
 
-Our first intention to parallelize this program with OpenMP was to use the `collapse` clause on the OpenMP `for` directive, to split up the two nested for loops that iterate over the 2D array, representing our room. This approach gave us good speedup compared to the sequential one, but it was slower compared to an OpenMP version that uses just the `for` directive (without collapse). To optimize the application further, we tried to distribute the workload with several scheduling algorithms, but because the needed computational power is more or less evenly distributed (because of random initialization) over the iterations, no scheduling algorithm improved the performance. Last, we tried to move the parallel region above the outer loop, so that the region is not initialized at every timestep. It seems that the compiler already makes this optimization, because we got no speedup.
+ Our first intention to parallelize this program with OpenMP was to use the `collapse` clause on the OpenMP `for` directive, to split up the two nested for loops that iterate over the 2D array, representing our room. This approach gave us good speedup compared to the sequential one, but it was slower compared to an OpenMP version that uses just the `for` directive (without collapse). To optimize the application further, we tried to distribute the workload with several scheduling algorithms, but because the needed computational power is more or less evenly distributed (because of random initialization) over the iterations, no scheduling algorithm improved the performance. Last, we tried to move the parallel region above the outer loop, so that the region is not initialized at every timestep. It seems that the compiler already makes this optimization, because we got no speedup.
 
 #### Measurements
 
