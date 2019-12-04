@@ -16,11 +16,11 @@ Each thread has a local copy of its own *seed*, *x* and *y* values. Using the *r
 
 #### Measurements
 
-|| Threads: 1 | Threads: 2 | Threads: 4 | Threads: 6 | Threads: 8
-| -: | -: | -: | -: | -: | -: | -: | -: |
-Samples: *10^6*| 21 ms | 22 ms | 22 ms | 22 ms | 22 ms |
-Samples: *10^7*| 21 ms | 22 ms | 22 ms | 211 ms | 210 ms |
-Samples: *10^8*| 21 ms | 22 ms | 22 ms | 211 ms | 210 ms |
+| N | Threads: 1 | Threads: 2 | Threads: 4 | Threads: 6 | Threads: 8 |
+| -: | -: | -: | -: | -: | -: | 
+| *10^6* | 21 ms | 22 ms | 22 ms | 22 ms | 22 ms |
+| *10^7* | 21 ms | 22 ms | 22 ms | 211 ms | 210 ms |
+| *10^8* | 21 ms | 22 ms | 22 ms | 211 ms | 210 ms |
 
 ### 2D heat stencil with OpenMP
 
