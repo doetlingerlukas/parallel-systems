@@ -3,6 +3,7 @@
 #include <string.h>
 #include <iostream>
 #include <vector>
+#include <omp.h>
 #include <chrono>
 
 using namespace std;
@@ -29,7 +30,8 @@ int getFirstSavePos(int row, int col, vector<int> hist){
 void solve(int n, int col, vector<int> hist)
 {
 	if (col == n) { // if last column reached print solution and return
-        //printSolution(n, hist);
+		/*#pragma omp critical
+        printSolution(n, hist);*/
 		return;
 	}
     
@@ -39,6 +41,8 @@ void solve(int n, int col, vector<int> hist)
 		if (j < col) continue; // only results after col needs to be calculated
  
 		hist[col] = i; // set queen on position: row i, column col
+
+		#pragma omp task
 		solve(n, col + 1, hist); //recursive call with next column
 	}
 }
@@ -51,7 +55,13 @@ int main(int n, char **argv)
 
 	vector<int> hist(n, 0);
 
-	solve(n, 0, hist);
+	#pragma omp parallel
+	{
+		#pragma omp single
+		{
+			solve(n, 0, hist);
+		}
+	}	
 
 	// Measure elapsed time.
 	auto end_time = chrono::high_resolution_clock::now();

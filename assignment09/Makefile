@@ -3,13 +3,16 @@ CPP = g++
 CPP_FLAGS = -O2 -std=c++17 -Wall -Wextra -pedantic
 OMP_FLAGS = -fopenmp
 
-TARGETS = n_queens
+TARGETS = n_queens n_queens_omp
 
 .PHONEY: all
-all: n_queens
+all: n_queens n_queens_omp
 
-matrix: n_queens.cpp
+n_queens: n_queens.cpp
 	$(CPP) $(CPP_FLAGS) $(OMP_FLAGS) $< -o n_queens
+
+n_queens_omp: n_queens_omp.cpp
+	$(CPP) $(CPP_FLAGS) $(OMP_FLAGS) $< -o n_queens_omp
 
 .PHONEY: clean
 clean:
