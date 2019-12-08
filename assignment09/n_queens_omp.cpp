@@ -23,9 +23,7 @@ int main(int argc, char **argv) {
 	#pragma omp parallel
 	{
 		#pragma omp single
-		{
-			chessboard.solve(0, vector<int>(n, 0));
-		}
+		chessboard.solve(0, vector<int>(n, 0));
 	}
 
 	// Measure elapsed time.

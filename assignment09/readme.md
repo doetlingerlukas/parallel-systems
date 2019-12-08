@@ -20,3 +20,4 @@ The idea is to start the first step of solving the problem with `omp single` ins
 When printing a solution, we use `omp critical`, so only one thread will print at a time.
 
 ### Potential optimizations
+
