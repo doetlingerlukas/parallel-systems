@@ -20,23 +20,17 @@ class Chessboard {
       print = verbose;
     }
 
-    bool attackable(int row, int j, int col, vector<int> hist) {
-      return hist[j] == row || abs(hist[j] - row) == (col - j);
-    }
-
     int getFirstSavePos(int row, int col, vector<int> hist){
       int j;
-      for (j = 0; j < col && !attackable(row, j, col, hist); j++);
+      for (j = 0; j < col && !attack(row, j); j++);
       return j;
     }
 
     void solve(int col, vector<int> hist) {
       // If last column is reached, print solution and return.
-      if (col == size) {
+      if (col == size && print) {
         #pragma omp critical
-        if (print) {
-          printSolution(hist);
-        }
+        printSolution(hist);
         return;
       }
       
@@ -51,9 +45,7 @@ class Chessboard {
         hist[col] = i;
 
         #pragma omp task
-        {
-          solve(col + 1, hist);
-        }
+        solve(col + 1, hist);
       }
     }
 
