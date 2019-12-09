@@ -4,9 +4,15 @@
 
 ## Exercise 1
 
-This exercise is about a parallel implementation of the n-queens problem.
+This exercise is about the n-queen problem. Goal is to provide a sequential and a parallelized version with OpenMP, do some benchmarks and think of additional optimizations.
 
-### Parallel approach
+### Sequential version
+
+We implemented the n-queens problem with a technique called backtracking. Backtracking algorithms compute solutions by taking previous steps into account. The idea is to place a queen on the board, and then search for the next valid position for the next queen. 
+
+We also implemented a naive brute force algorithm for comparison, which does not only compute valid solutions, but instead, generates all possibilites. Afterwards we only print the subset valid solutions.
+
+### Parallel version
 
 Since this is a classic backtracking algorithm we can't just use `omp parallel for` and call it a day.
 Therefore we used the following OpenMP constructs:
@@ -21,3 +27,8 @@ When printing a solution, we use `omp critical`, so only one thread will print a
 
 ### Potential optimizations
 
+
+### Resources 
+
+* https://rosettacode.org/wiki/N-queens_problem#C
+* https://stackoverflow.com/questions/3184893/use-next-permutation-to-permutate-a-vector-of-classes
