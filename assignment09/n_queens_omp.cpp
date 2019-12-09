@@ -11,12 +11,12 @@ int main(int argc, char **argv) {
 	bool print = false;
 	
 	if (argc > 1) {
-    n = strtol(argv[1], nullptr, 10);
-    if (argc > 2) {
-      string verbose = argv[2];
-      print = verbose == "--verbose";
-    }
-  }
+		n = strtol(argv[1], nullptr, 10);
+		if (argc > 2) {
+			string verbose = argv[2];
+			print = verbose == "--verbose";
+		}
+  	}
 
 	Chessboard chessboard = Chessboard(n, print);
 

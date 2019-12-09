@@ -10,14 +10,17 @@ using namespace std;
 #define attack(i, j) (hist[j] == i || abs(hist[j] - i) == col - j)
 
 int count = 0;
+bool print = false;
 
 void printSolution(int n, vector<int> hist){
-        printf("\nNo. %d\n-----\n", ++count);
-		for (int i = 0; i < n; i++, putchar('\n')){
-			for (int j = 0; j < n; j++){
-                j == hist[i] ? cout << "Q|" :  cout << "_|";
-            }
-        }
+	++count;
+	if (!print)	return;
+	printf("\nNo. %d\n-----\n", count);
+	for (int i = 0; i < n; i++, putchar('\n')){
+		for (int j = 0; j < n; j++){
+			j == hist[i] ? cout << "Q|" :  cout << "_|";
+		}
+	}
 }
 
 int getFirstSavePos(int row, int col, vector<int> hist){
@@ -26,10 +29,10 @@ int getFirstSavePos(int row, int col, vector<int> hist){
     return j;
 }
 
-void solve(int n, int col, vector<int> hist)
-{
+void solve(int n, int col, vector<int> hist){
+
 	if (col == n) { // if last column reached print solution and return
-        //printSolution(n, hist);
+        printSolution(n, hist);
 		return;
 	}
     
@@ -43,15 +46,25 @@ void solve(int n, int col, vector<int> hist)
 	}
 }
  
-int main(int n, char **argv)
+int main(int argc, char **argv)
 {
 	auto start_time = chrono::high_resolution_clock::now();
 
-	if (n <= 1 || (n = atoi(argv[1])) <= 0) n = 13;
+	int n = 13;
+	
+	if (argc > 1) {
+		n = strtol(argv[1], nullptr, 10);
+		if (argc > 2) {
+			string verbose = argv[2];
+			print = verbose == "--verbose";
+		}
+  	}
 
 	vector<int> hist(n, 0);
 
 	solve(n, 0, hist);
+
+	cout << endl << count << " solutions found" << endl;
 
 	// Measure elapsed time.
 	auto end_time = chrono::high_resolution_clock::now();
