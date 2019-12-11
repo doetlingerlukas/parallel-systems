@@ -28,9 +28,12 @@ class Chessboard {
 
     void solve(int col, vector<int> hist) {
       // If last column is reached, print solution and return.
-      if (col == size && print) {
+      if (print && col == size) {
         #pragma omp critical
         printSolution(hist);
+      }
+
+      if (col == size){
         return;
       }
       
@@ -44,7 +47,7 @@ class Chessboard {
         // Set queen on position: row i, column col.
         hist[col] = i;
 
-        #pragma omp task
+        #pragma omp task untied
         solve(col + 1, hist);
       }
     }
