@@ -37,10 +37,10 @@ When printing a solution, we use `omp critical`, so only one thread will print a
 
 Speed up and efficiency will be calculated dependent of the optimized sequential approach, since no time measurements of bigger problem sizes for the naive approach are available.
 
-![](./measurements/time.png)
-![](./measurements/time-log.png)
-![](./measurements/efficiency-opt.png)
-![](./measurements/speedup-opt.png)
+![](./measurements/times.png)
+![](./measurements/times-log.png)
+![](./measurements/speedup.png)
+![](./measurements/efficiency.png)
 
 
 ### Resources 
