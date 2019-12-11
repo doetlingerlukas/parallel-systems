@@ -23,12 +23,6 @@ void printSolution(int n, vector<int> hist){
 	}
 }
 
-int getFirstSavePos(int row, int col, vector<int> hist){
-    int j;
-    for (j = 0; j < col && !attack(row, j); j++);
-    return j;
-}
-
 void solve(int n, int col, vector<int> hist){
 
 	if (col == n) { // if last column reached print solution and return
@@ -37,7 +31,9 @@ void solve(int n, int col, vector<int> hist){
 	}
     
 	for (int i = 0; i < n; i++) {
-        int j = getFirstSavePos(i, col, hist); // get save position of queen in given row i
+		
+        int j;
+        for (j = 0; j < col && !attack(i, j); j++); // get save position of queen in given row i
 
 		if (j < col) continue; // only results after col needs to be calculated
  
