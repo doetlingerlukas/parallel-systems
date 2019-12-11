@@ -25,7 +25,22 @@ The idea is to start the first step of solving the problem with `omp single` ins
 
 When printing a solution, we use `omp critical`, so only one thread will print at a time.
 
-### Potential optimizations
+### Measurements
+
+| N | seq-naive [s] | seq-opt [s] | OpenMP 2 [s] | OpenMP 4 [s] | OpenMP 8 [s] |
+| -: | -: | -: | -: | -: | -: | 
+| 10 | 0.36 s | 0.027 s | 0.06 s | 0.05 s | 0.04 s |
+| 11 | 4.05 s | 0.143 s | 0.3 s | 0.22 s | 0.1 s |
+| 12 | 50.1 s | 0.801 s | 1.65 s  | 1.36 s | 0.46 s |
+| 13 | 669.5 s | 4.85 s | 9.44 s | 7.81 s | 2.63 s |
+| 14 | xx | 30,6 s | 61.54 s | 43.12 s | 16.66 s |
+
+Speed up and efficiency will be calculated dependent of the optimized sequential approach, since no time measurements of bigger problem sizes for the naive approach are available.
+
+![](./measurements/time.png)
+![](./measurements/time-log.png)
+![](./measurements/efficiency-opt.png)
+![](./measurements/speedup-opt.png)
 
 
 ### Resources 
