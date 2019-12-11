@@ -20,12 +20,6 @@ class Chessboard {
       print = verbose;
     }
 
-    int getFirstSavePos(int row, int col, vector<int> hist){
-      int j;
-      for (j = 0; j < col && !attack(row, j); j++);
-      return j;
-    }
-
     void solve(int col, vector<int> hist) {
       // If last column is reached, print solution and return.
       if (print && col == size) {
@@ -39,7 +33,8 @@ class Chessboard {
       
       for (int i = 0; i < size; i++) {
         // Get save position of queen in given row i.
-        int j = getFirstSavePos(i, col, hist);
+        int j;
+        for (j = 0; j < col && !attack(i, j); j++);
 
         // Only results after col need to be calculated.
         if (j < col) continue;
