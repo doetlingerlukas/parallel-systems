@@ -95,7 +95,6 @@ int main(int argc, char **argv) {
     }
 
     // iterate over rows
-    #pragma omp parallel for
     for (auto row = 0; row < chunk_size; row++) { 
 
       // send first element of current row to left neighbour
@@ -112,6 +111,7 @@ int main(int argc, char **argv) {
       }
 
       // iterate over columns
+      #pragma omp parallel for
       for (auto column = 0; column < chunk_size; column++) {
 
         if (rank_id == source_rank && (row == source_index && column == source_index)) {
