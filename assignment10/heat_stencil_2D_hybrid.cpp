@@ -3,6 +3,7 @@
 #include <cmath>
 #include <chrono>
 #include <mpi.h>
+#include <omp.h>
 
 const static int TO_LEFT = 0;
 const static int TO_RIGHT = 1;
@@ -15,7 +16,7 @@ using namespace std;
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 400; // has to be devisable by 4
+  auto N = 100; // has to be devisable by 4
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -48,6 +49,20 @@ int main(int argc, char **argv) {
 	int left, right, upper, lower;
 	MPI_Cart_shift(comm_2d, 0, 1, &left, &right);
 	MPI_Cart_shift(comm_2d, 1, 1, &upper, &lower);
+
+  // Print rank and omp thread numbers.
+  for(int current_rank = 0; current_rank < amount_of_ranks; current_rank++) {
+    if(rank_id == current_rank) {
+      #pragma omp parallel
+      {
+        #pragma omp critical
+        {
+          cout << "Rank: " << rank_id << " OMP_Thread: " << omp_get_thread_num() << endl;
+        }
+      }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
 
   // Problem size for a single rank.
   auto chunk_size = N / ranks_per_row;
