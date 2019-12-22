@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
     }
     
     // swap matrices (just pointers, not content)
-    swap(buffer, swap_buffer);
+    buffer.swap(swap_buffer);
   }
 
   // Collect results.
