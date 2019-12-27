@@ -4,6 +4,8 @@
 #include <chrono>
 #include <mpi.h>
 #include <omp.h>
+#include <unistd.h>
+#include <climits>
 
 const static int TO_LEFT = 0;
 const static int TO_RIGHT = 1;
@@ -53,11 +55,14 @@ int main(int argc, char **argv) {
   // Print rank and omp thread numbers.
   for(int current_rank = 0; current_rank < amount_of_ranks; current_rank++) {
     if(rank_id == current_rank) {
+      char hostname[HOST_NAME_MAX];
+      gethostname(hostname, HOST_NAME_MAX);
+
       #pragma omp parallel
       {
         #pragma omp critical
         {
-          cout << "Rank: " << rank_id << " OMP_Thread: " << omp_get_thread_num() << endl;
+          cout << "Node: " << hostname << " Rank: " << rank_id << " OMP_Thread: " << omp_get_thread_num() << endl;
         }
       }
     }
