@@ -73,8 +73,8 @@ int main(int argc, char **argv) {
   auto chunk_size = N / ranks_per_row;
 
   // Buffers for computation.
-  vector<vector<double>> buffer(chunk_size, vector<double>(chunk_size, 273));
-  vector<vector<double>> swap_buffer(chunk_size, vector<double>(chunk_size, 273));
+  vector<double> buffer(chunk_size*chunk_size, 273);
+  vector<double> swap_buffer(chunk_size*chunk_size, 273);
 
   // Place heat source.
   int source = N / 4;
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
   auto source_index = source % chunk_size;
   
   if (rank_id == source_rank) {
-    buffer[source_index][source_index] = 273 + 60;
+    buffer[chunk_size * source_index + source_index] = 273 + 60;
   }
 
 
@@ -98,13 +98,13 @@ int main(int argc, char **argv) {
     // send to lower
     if (lower >= 0) {
       MPI_Request req;
-      MPI_Isend(&buffer[chunk_size-1][0], chunk_size, MPI_DOUBLE, lower, TO_LOWER, comm_2d, &req);
+      MPI_Isend(&buffer[chunk_size * (chunk_size-1) + 0], chunk_size, MPI_DOUBLE, lower, TO_LOWER, comm_2d, &req);
       MPI_Request_free(&req);
     }
     // send to upper and recieve from upper
     if (upper >= 0) {
       MPI_Request req;
-      MPI_Isend(&buffer[0][0], chunk_size, MPI_DOUBLE, upper, TO_UPPER, comm_2d, &req);
+      MPI_Isend(&buffer[0], chunk_size, MPI_DOUBLE, upper, TO_UPPER, comm_2d, &req);
       MPI_Request_free(&req);
 
       MPI_Recv(&upper_buffer[0], chunk_size, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
@@ -120,13 +120,13 @@ int main(int argc, char **argv) {
       // send first element of current row to left neighbour
       if (left >= 0) {
         MPI_Request req;
-        MPI_Isend(&buffer[row][0], 1, MPI_DOUBLE, left, TO_LEFT, comm_2d, &req);
+        MPI_Isend(&buffer[chunk_size * row + 0], 1, MPI_DOUBLE, left, TO_LEFT, comm_2d, &req);
         MPI_Request_free(&req);
       }
       // send last element of current row to right neigbour
       if (right >= 0) {
         MPI_Request req;
-        MPI_Isend(&buffer[row][chunk_size - 1], 1, MPI_DOUBLE, right, TO_RIGHT, comm_2d, &req);
+        MPI_Isend(&buffer[chunk_size * row + chunk_size - 1], 1, MPI_DOUBLE, right, TO_RIGHT, comm_2d, &req);
         MPI_Request_free(&req);
       }
 
@@ -135,16 +135,16 @@ int main(int argc, char **argv) {
       for (auto column = 0; column < chunk_size; column++) {
 
         if (rank_id == source_rank && (row == source_index && column == source_index)) {
-            swap_buffer[row][column] = buffer[row][column];
+            swap_buffer[chunk_size * row + column] = buffer[chunk_size * row + column];
             continue;
         }
         
-        auto current_temp = buffer[row][column];
+        auto current_temp = buffer[chunk_size * row + column];
         
-        auto left_temp = (column != 0) ? buffer[row][column - 1] : current_temp;
-        auto right_temp = (column != chunk_size - 1) ? buffer[row][column + 1] : current_temp;
-        auto upper_temp = (row != 0) ? buffer[row - 1][column] : current_temp;
-        auto lower_temp = (row != chunk_size - 1) ? buffer[row + 1][column] : current_temp;
+        auto left_temp = (column != 0) ? buffer[chunk_size * row + column - 1] : current_temp;
+        auto right_temp = (column != chunk_size - 1) ? buffer[chunk_size * row + column + 1] : current_temp;
+        auto upper_temp = (row != 0) ? buffer[chunk_size * (row-1) + column] : current_temp;
+        auto lower_temp = (row != chunk_size - 1) ? buffer[chunk_size * (row+1) + column] : current_temp;
 
         if ((left >= 0) && (column == 0)) {
           MPI_Recv(&left_temp, 1, MPI_DOUBLE, left, TO_RIGHT, comm_2d, MPI_STATUS_IGNORE);
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
           lower_temp = lower_buffer[column];
         }
 
-        swap_buffer[row][column] = current_temp + 0.2 * (left_temp + right_temp + upper_temp + lower_temp + (-4 * current_temp));  
+        swap_buffer[chunk_size * row + column] = current_temp + 0.2 * (left_temp + right_temp + upper_temp + lower_temp + (-4 * current_temp));  
       }
     }
     
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
 
     for (auto row = 0; row < chunk_size; row++) {
       for (auto column = 0; column < chunk_size; column++) {
-        result[row + coord[1] * chunk_size][column + coord[0] * chunk_size] = buffer[row][column];
+        result[row + coord[1] * chunk_size][column + coord[0] * chunk_size] = buffer[chunk_size * row + column];
       }
     }
 
@@ -224,7 +224,7 @@ int main(int argc, char **argv) {
     vector<double> to_send;
     for (auto row = 0; row < chunk_size; row++) {
       for (auto column = 0; column < chunk_size; column++) {
-        to_send.push_back(buffer[row][column]);
+        to_send.push_back(buffer[chunk_size * row + column]);
       }
     }
     MPI_Send(&to_send[0], send_size, MPI_DOUBLE, 0, TO_MAIN, comm_2d);
