@@ -4,8 +4,9 @@
 #include <vector>
 #include <chrono>
 #include <mpi.h>
-
-#define RESOLUTION 80
+#include <omp.h>
+#include <unistd.h>
+#include <climits>
 
 using namespace std;
 
@@ -17,10 +18,16 @@ void printTemperature(vector<vector<double>> m, int N);
 
 int main(int argc, char **argv) {
 
+  bool verbose = false;
+
   // problem size
   auto N = 100; // has to be devisable by 4
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
+    if (argc > 2) {
+			string v = argv[2];
+			verbose = v == "--verbose";
+		}
   }
   auto timesteps = N*100;
   
@@ -42,6 +49,24 @@ int main(int argc, char **argv) {
   // Neighbours rank id's.
   int upper, lower;
   MPI_Cart_shift(comm_2d, 0, 1, &upper, &lower);
+
+  // Print rank and omp thread numbers.
+  if (verbose) {
+    for (int current_rank = 0; current_rank < amount_of_ranks; current_rank++) {
+      if (rank_id == current_rank) {
+        char hostname[HOST_NAME_MAX];
+        gethostname(hostname, HOST_NAME_MAX);
+        #pragma omp parallel
+        {
+          #pragma omp critical
+          {
+            cout << "Node: " << hostname << " Rank: " << rank_id << " OMP_Thread: " << omp_get_thread_num() << endl;
+          }
+        }
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+  }
 
   // Problem size for a single rank.
   auto chunk_height = N / amount_of_ranks;
