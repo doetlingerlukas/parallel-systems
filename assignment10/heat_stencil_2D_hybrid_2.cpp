@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
   auto chunk_height = N / amount_of_ranks;
 
   // Buffers for computation.
-  vector<vector<double>> buffer(chunk_height, vector<double>(N, 273));
-  vector<vector<double>> swap_buffer(chunk_height, vector<double>(N, 273));
+  vector<double> buffer(chunk_height * N, 273);
+  vector<double> swap_buffer(chunk_height * N, 273);
 
   // Place heat source.
   int source = N / 4;
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
   int source_rank = source / chunk_height;
    
   if (rank_id == source_rank) {
-    buffer[source_coords[0]][source_coords[1]] = 273 + 60;
+    buffer[N * source_coords[0] + source_coords[1]] = 273 + 60;
   }
   
   // Buffer to save upper/lower border row.
@@ -66,44 +66,44 @@ int main(int argc, char **argv) {
   for (auto t = 0; t < timesteps; t++) { // iterate timesteps
 
     if (lower >= 0) { // lower
-      MPI_Send(&buffer[chunk_height-1][0], N, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
+      MPI_Send(&buffer[N * (chunk_height-1) + 0], N, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
       MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
     }
 
     if (upper >= 0) { // upper
-      MPI_Send(&buffer[0][0], N, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
+      MPI_Send(&buffer[N * 0 + 0], N, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
       MPI_Recv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
     }
 
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for
     for (auto i = 0; i < chunk_height; i++) { // iterate rows
       for (auto j = 0; j < N; j++) { // iterate columns
 
         if (rank_id == source_rank && i == source_coords[0] && j == source_coords[1]) {
-            swap_buffer[i][j] = buffer[i][j];
+            swap_buffer[N * i + j] = buffer[N * i + j];
             continue;
         }
 
-        auto t_current = buffer[i][j];  
-        auto t_left = (j != 0) ? buffer[i][j - 1] : t_current;
-        auto t_right = (j != N - 1) ? buffer[i][j + 1] : t_current;
+        auto t_current = buffer[N * i + j];
+        auto t_left = (j != 0) ? buffer[N * i + j - 1] : t_current;
+        auto t_right = (j != N - 1) ? buffer[N * i + j + 1] : t_current;
 
-        auto t_upper = (i != 0) ? buffer[i - 1][j] : t_current;
+        auto t_upper = (i != 0) ? buffer[N * (i - 1) + j] : t_current;
         if ((upper >= 0) && (i == 0)) {
           t_upper = upper_buffer[j];
         }
 
-        auto t_lower = (i != chunk_height - 1) ? buffer[i + 1][j] : t_current;
+        auto t_lower = (i != chunk_height - 1) ? buffer[N * (i + 1) + j] : t_current;
         if ((lower >= 0) && (i == chunk_height - 1)) {
           t_lower = lower_buffer[j];
         }
 
-        swap_buffer[i][j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));
+        swap_buffer[N * i + j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));
       }
     }
 
     // swap matrices (just pointers, not content)
-    swap(buffer, swap_buffer);
+    buffer.swap(swap_buffer);
   }
 
   auto buffer_size = chunk_height * N;
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
     // Add buffer of rank 0 to result.
     for (auto i = 0; i < chunk_height; i++) {
       for (auto j = 0; j < N; j++) {
-        result[i][j] = buffer[i][j];
+        result[i][j] = buffer[N * i + j];
       }
     }
 
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
     vector<double> to_send;
     for (auto i = 0; i < chunk_height; i++) {
       for (auto j = 0; j < N; j++) {
-        to_send.push_back(buffer[i][j]);
+        to_send.push_back(buffer[N * i + j]);
       }
     }
     MPI_Send(&to_send[0], buffer_size, MPI_DOUBLE, 0, TO_MAIN, comm_2d);
