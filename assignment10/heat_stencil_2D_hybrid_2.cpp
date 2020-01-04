@@ -70,13 +70,9 @@ int main(int argc, char **argv) {
 
     MPI_Win_fence(0, window);
     if (lower >= 0) { // lower
-      //MPI_Send(&buffer[N * (chunk_height-1) + 0], N, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
-      //MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
       MPI_Put(&buffer[N * (chunk_height-1) + 0], N, MPI_DOUBLE, lower, 0, N, MPI_DOUBLE, window);
     }
     if (upper >= 0) { // upper
-      //MPI_Send(&buffer[N * 0 + 0], N, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
-      //MPI_Recv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
       MPI_Put(&buffer[N * 0 + 0], N, MPI_DOUBLE, upper, N, N, MPI_DOUBLE, window);
     }
     MPI_Win_fence(0, window);
