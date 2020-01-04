@@ -60,20 +60,26 @@ int main(int argc, char **argv) {
   }
   
   // Buffer to save upper/lower border row.
-  vector<double> upper_buffer(N);
-  vector<double> lower_buffer(N);
+  vector<double> border_buffer(N * 2);
+
+  MPI_Win window;
+
+  MPI_Win_create(&border_buffer[0], sizeof(double)*N*2, sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &window);
 
   for (auto t = 0; t < timesteps; t++) { // iterate timesteps
 
+    MPI_Win_fence(0, window);
     if (lower >= 0) { // lower
-      MPI_Send(&buffer[N * (chunk_height-1) + 0], N, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
-      MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
+      //MPI_Send(&buffer[N * (chunk_height-1) + 0], N, MPI_DOUBLE, lower, TO_LOWER, comm_2d);
+      //MPI_Recv(&lower_buffer[0], N, MPI_DOUBLE, lower, TO_UPPER, comm_2d, MPI_STATUS_IGNORE);
+      MPI_Put(&buffer[N * (chunk_height-1) + 0], N, MPI_DOUBLE, lower, 0, N, MPI_DOUBLE, window);
     }
-
     if (upper >= 0) { // upper
-      MPI_Send(&buffer[N * 0 + 0], N, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
-      MPI_Recv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
+      //MPI_Send(&buffer[N * 0 + 0], N, MPI_DOUBLE, upper, TO_UPPER, comm_2d);
+      //MPI_Recv(&upper_buffer[0], N, MPI_DOUBLE, upper, TO_LOWER, comm_2d, MPI_STATUS_IGNORE);
+      MPI_Put(&buffer[N * 0 + 0], N, MPI_DOUBLE, upper, N, N, MPI_DOUBLE, window);
     }
+    MPI_Win_fence(0, window);
 
     #pragma omp parallel for
     for (auto i = 0; i < chunk_height; i++) { // iterate rows
@@ -90,12 +96,12 @@ int main(int argc, char **argv) {
 
         auto t_upper = (i != 0) ? buffer[N * (i - 1) + j] : t_current;
         if ((upper >= 0) && (i == 0)) {
-          t_upper = upper_buffer[j];
+          t_upper = border_buffer[0 + j];
         }
 
         auto t_lower = (i != chunk_height - 1) ? buffer[N * (i + 1) + j] : t_current;
         if ((lower >= 0) && (i == chunk_height - 1)) {
-          t_lower = lower_buffer[j];
+          t_lower = border_buffer[N + j];
         }
 
         swap_buffer[N * i + j] = t_current + 0.2 * (t_left + t_right + t_upper + t_lower + (-4 * t_current));
@@ -105,6 +111,8 @@ int main(int argc, char **argv) {
     // swap matrices (just pointers, not content)
     buffer.swap(swap_buffer);
   }
+
+  MPI_Win_free(&window);
 
   auto buffer_size = chunk_height * N;
 
