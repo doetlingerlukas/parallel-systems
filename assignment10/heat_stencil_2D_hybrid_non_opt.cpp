@@ -15,7 +15,7 @@ using namespace std;
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 300; // has to be devisable by 4
+  auto N = 2000; // has to be devisable by 4
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
   }
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     }
 
     // iterate over rows
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for (auto row = 0; row < chunk_size; row++) { 
 
       // send first element of current row to left neighbour
@@ -112,6 +112,7 @@ int main(int argc, char **argv) {
       }
 
       // iterate over columns
+      //#pragma omp parallel for
       for (auto column = 0; column < chunk_size; column++) {
 
         if (rank_id == source_rank && (row == source_index && column == source_index)) {

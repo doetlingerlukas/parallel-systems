@@ -7,7 +7,7 @@ using namespace std;
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 100;
+  auto N = 1000;
   bool print = false;
 
   if (argc > 1) {

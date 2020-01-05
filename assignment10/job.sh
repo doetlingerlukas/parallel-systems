@@ -26,6 +26,6 @@ done
 module load gcc/8.2.0
 module load openmpi/4.0.1
 
-export OMP_NUM_THREADS=4
+export OMP_NUM_THREADS=8
 
 mpiexec --map-by node -n $processes --mca btl self,vader,tcp $program

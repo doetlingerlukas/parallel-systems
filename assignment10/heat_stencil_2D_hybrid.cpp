@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   bool verbose = false;
 
   // problem size
-  auto N = 300; // has to be devisable by 4
+  auto N = 2000; // has to be devisable by 4
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
     if (argc > 2) {
