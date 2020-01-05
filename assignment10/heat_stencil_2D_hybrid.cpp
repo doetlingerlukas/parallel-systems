@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
   bool verbose = false;
 
   // problem size
-  auto N = 100; // has to be devisable by 4
+  auto N = 300; // has to be devisable by 4
   if (argc > 1) {
     N = strtol(argv[1], nullptr, 10);
     if (argc > 2) {
@@ -144,6 +144,7 @@ int main(int argc, char **argv) {
       vector<double> A(buffer_size);
       MPI_Recv(&A[0], buffer_size, MPI_DOUBLE, i, TO_MAIN, comm_2d, MPI_STATUS_IGNORE);
 
+      #pragma omp parallel for
       for (auto j = 0; j < chunk_height; j++) {
         for (auto k = 0; k < N; k++) {
           result[j + i * chunk_height][k] = A[k + j * N];
@@ -152,6 +153,7 @@ int main(int argc, char **argv) {
     }
 
     // Add buffer of rank 0 to result.
+    #pragma omp parallel for
     for (auto i = 0; i < chunk_height; i++) {
       for (auto j = 0; j < N; j++) {
         result[i][j] = buffer[N * i + j];
