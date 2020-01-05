@@ -7,7 +7,7 @@ using namespace std;
 int main(int argc, char **argv) {
 
   // problem size
-  auto N = 300;
+  auto N = 100;
   bool print = false;
 
   if (argc > 1) {
@@ -67,10 +67,10 @@ int main(int argc, char **argv) {
   }
 
   // Measure time.
-  auto end_time = chrono::high_resolution_clock::now();
-  auto duration = chrono::duration_cast<chrono::seconds>(end_time - start_time).count();
-  cout << endl;
-  cout << "This took " << duration << " seconds." << endl;
+    auto end_time = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end_time - start_time).count() / 1000.0;
+    cout << endl;
+    cout << "This took " << duration << " seconds." << endl;
 
   return EXIT_SUCCESS;
 }
