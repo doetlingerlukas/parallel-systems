@@ -16,3 +16,24 @@ The goal of this assignment is to write a hybrid MPI/OpenMP application.
 ### Hybrid Job Submission
 
 - https://wiki.uiowa.edu/display/hpcdocs/Advanced+Job+Submission
+
+### Optimizations
+
+#### Intra-node Performance
+
+Using only 1-dimensional buffers, instead of 2-dimensional buffers (vector of vector), optimizes the intra-node performance.
+
+#### Inter-node Performance
+
+We decomposed the domain into **slabs**. This minimized the communication overhead, because only two buffers (upper and lower) are left to be used.
+
+#### RMA
+
+Since our original approach was by chance the most optimized version for a hybrid application, we decided to implement remote memory access instead. However, the RMA version is slightly slower then our optimized original version. In our opinion buffering and synchronisation at *win_fence* calls are the reason for this.
+
+### Measurements
+
+![](./measurements/time.png)
+![](./measurements/speed.png)
+![](./measurements/eff.png)
+![](./measurements/versions.png)
