@@ -44,10 +44,10 @@ Since our original approach was by chance the most optimized version for a hybri
 
 #### Different Versions
 
-| N | hybrid-non-opt-32 | hybrid-rma-32 | hybrid-opt-32
-| -: | -: | -: | -: | -: | -: |
-1000 | 216,8 | 136,484 | 93,555
-2000 | 1250,35 | 496,129 | 475,293
+| N | hybrid-non-opt-32 [s] | hybrid-rma-32 [s] | hybrid-opt-32 [s]
+| -: | -: | -: | -: |
+| 1000 | 216,8 | 136,484 | 93,555
+| 2000 | 1250,35 | 496,129 | 475,293
 
 
 
