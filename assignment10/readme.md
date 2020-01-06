@@ -33,6 +33,24 @@ Since our original approach was by chance the most optimized version for a hybri
 
 ### Measurements
 
+#### Optimized Hybrid Version
+
+| N | seq [s] | hybrid-8 [s] | hybrid-16 [s] | hybrid-32 [s] | hybrid-56 [s]
+| -: | -: | -: | -: | -: | -: |
+| 100 | 0,54300 | 0,329 | 0,95 | 1,465 | 1,651
+| 300 | 14,187 | 4,97 | 10,528 | 10,626 | 11,594
+| 500 | 65,526 | 21,715 | 19,023 | 23,312 | 26,715
+| 1000 | 569,443 | 170,648 | 117,085 | 93,555 | 82,657
+
+#### Different Versions
+
+| N | hybrid-non-opt-32 | hybrid-rma-32 | hybrid-opt-32
+| -: | -: | -: | -: | -: | -: |
+1000 | 216,8 | 136,484 | 93,555
+2000 | 1250,35 | 496,129 | 475,293
+
+
+
 ![](./measurements/time.png)
 ![](./measurements/speed.png)
 ![](./measurements/eff.png)
