@@ -25,7 +25,7 @@ Using only 1-dimensional buffers, instead of 2-dimensional buffers (vector of ve
 
 #### Inter-node Performance
 
-We decomposed the domain into **slabs**. This minimized the communication overhead, because only two buffers (upper and lower) are left to be used.
+At first we used a grid-like decomposition, which led to 4 buffers for each direction. Now, we decomposed the domain into **slabs**/**poles**. This minimized the communication overhead, because only two buffers (upper and lower) are left to be used. 
 
 #### RMA
 
