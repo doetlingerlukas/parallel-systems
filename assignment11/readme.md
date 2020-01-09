@@ -17,7 +17,7 @@ Use **gprof**, **gperftools** and **perf** (not working with WSL :()!
     - run gprofbinary gmon.outto view results
     - use --lineto get more detailed, line-based results
         - in our example:  ```gprof real_omp gmon.out --line```
-        - output:   
+        - output (WSL...Linux has better output):   
 
 | %    | cumulative | self    | self   | total   |         |                                |
 |------|------------|---------|--------|---------|---------|--------------------------------|
