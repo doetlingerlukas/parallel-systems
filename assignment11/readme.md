@@ -36,6 +36,16 @@ Use **gprof**, **gperftools** and **perf** (not working with WSL :()!
     - run with environment variable CPUPROFILE=prof.out
     - run pprofbinary prof.outto view results (--gvfor graphical visualization)
 
+### Findings
+
+- ```-ftree-vectorize``` slows it slightly down
+- ```parallel for``` slows down & verification fails
+    - many data dependencies in calculcation result in verification fails when parallizing
+- using ```omp tasks``` little speed up 
+- ```#pragma omp simd ``` little speed up (careful of loop-carried dependencies)
+
+
+
 ### Description
 
 The file [real.tar.gz](real.tar.gz) contains a realistic implementation of a (simple) numerical algorithm. Imagine you are tasked with making this implementation faster by parallelizing it with OpenMP, without any further information.

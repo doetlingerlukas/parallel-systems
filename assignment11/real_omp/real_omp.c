@@ -236,10 +236,18 @@ int main()
       printf("  iter %3d\n", it);
     }
     if (timeron) timer_start(T_mg3P);
+
+    #pragma omp task
     mg3P(u, v, r, a, c, n1, n2, n3);
+
     if (timeron) timer_stop(T_mg3P);
     if (timeron) timer_start(T_resid2);
+
+    #pragma omp task
     resid(u, v, r, n1, n2, n3, a, k);
+
+    #pragma omp taskgroup
+    
     if (timeron) timer_stop(T_resid2);
   }
 
@@ -398,7 +406,6 @@ static void mg3P(double u[], double v[], double r[],
   // down cycle.
   // restrict the residual from the find grid to the coarse
   //---------------------------------------------------------------------
-  #pragma omp parallel for
   for (k = lt; k >= lb+1; k--) {
     j = k - 1;
     rprj3(&r[ir[k]], m1[k], m2[k], m3[k],
@@ -412,7 +419,6 @@ static void mg3P(double u[], double v[], double r[],
   zero3(&u[ir[k]], m1[k], m2[k], m3[k]);
   psinv(&r[ir[k]], &u[ir[k]], m1[k], m2[k], m3[k], c, k);
 
-  #pragma omp parallel for
   for (k = lb+1; k <= lt-1; k++) {
     j = k - 1;
 
