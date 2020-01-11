@@ -87,6 +87,16 @@ Overhead  Command   Shared Object          Symbol
 
 * https://euccas.github.io/blog/20170827/cpu-profiling-tools-on-linux.html
 
+### Findings
+
+- ```-ftree-vectorize``` slows it slightly down
+- ```parallel for``` slows down & verification fails
+    - many data dependencies in calculcation result in verification fails when parallizing
+- using ```omp tasks``` little speed up 
+- ```#pragma omp simd ``` little speed up (careful of loop-carried dependencies)
+
+
+
 ### Description
 
 The file [real.tar.gz](real.tar.gz) contains a realistic implementation of a (simple) numerical algorithm. Imagine you are tasked with making this implementation faster by parallelizing it with OpenMP, without any further information.
