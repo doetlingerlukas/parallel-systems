@@ -12,13 +12,17 @@ Use tools like **gprof**, **gperftools**, **perf** (not working with WSL :( <-- 
 
 GNU profiler gprof tool uses a hybrid of instrumentation and sampling. Instrumentation is used to collect function call information, and sampling is used to gather runtime profiling information [[1]](https://euccas.github.io/blog/20170827/cpu-profiling-tools-on-linux.html).
 
-- available with GCC
-- compile with debug symbols (-g) and gprofsupport (-pg)
-- run binary as usual
-- run gprofbinary gmon.out to view results
-- use --lineto get more detailed, line-based results
-    - in our example:  ```gprof real_omp gmon.out --line```
-    - output (WSL...Linux has better output):   
+
+#### How to use:
+
+* compile with debug symbols (-g) and gprofsupport (-pg)
+
+* Then use `gmon.out` file to show results:
+
+```
+gprof real_omp gmon.out --line      # --line to get more details
+```
+
 
 Windows output:
 
@@ -61,25 +65,52 @@ Linux output:
 - run with environment variable CPUPROFILE=prof.out
 - run pprofbinary prof.out to view results (--gv for graphical visualization)
 
+#### How to use [[2]](https://wiki.geany.org/howtos/profiling/gperftools):
+
+```
+LD_PRELOAD=/usr/lib/libprofiler.so CPUPROFILE=prof.out ./real_omp   # start profiling
+pprof --text ./real_omp prof.out                                    # show the resuls as text
+pprof --web ./real_omp prof.out                                     # show the results in the browser
+```
+
+Text output:
+```
+Total: 589 samples
+     231  39.2%  39.2%      231  39.2% resid
+     105  17.8%  57.0%      105  17.8% vranlc
+     104  17.7%  74.7%      104  17.7% psinv
+      53   9.0%  83.7%       53   9.0% interp
+      47   8.0%  91.7%       47   8.0% rprj3
+      17   2.9%  94.6%       17   2.9% comm3.isra.0
+      15   2.5%  97.1%       15   2.5% __memset_avx2_erms
+      10   1.7%  98.8%       10   1.7% norm2u3
+       4   0.7%  99.5%        4   0.7% __memset_avx2_unaligned_erms
+       3   0.5% 100.0%        3   0.5% zran3.isra.0.constprop.0
+       0   0.0% 100.0%       61  10.4% 0x00007f15fee3baf7
+       0   0.0% 100.0%       61  10.4% 0x60663242d68bf6ff
+       0   0.0% 100.0%      118  20.0% main
+
+```
+
 ### perf
 
 Uses CPU performance counters to profile (sampling tool).
 
-* How to use:
+#### How to use:
+
 ```
-perf record ./real_omp  # creates file perf.data
-perf report
+perf record ./real_omp      # creates file perf.data
+perf report                 # show results
 ```
+
 This gives following output:
 ```
 Overhead  Command   Shared Object          Symbol
-  28.60%  real_omp  real_omp               [.] resid
-  19.45%  real_omp  libgomp.so.1.0.0       [.] gomp_team_barrier_wait_end
-  12.14%  real_omp  real_omp               [.] psinv
-  11.04%  real_omp  real_omp               [.] vranlc
-  10.06%  real_omp  libgomp.so.1.0.0       [.] gomp_barrier_wait_end
-   6.72%  real_omp  real_omp               [.] interp
-   6.31%  real_omp  real_omp               [.] rprj3
+  38.54%  real_omp  real_omp               [.] resid
+  17.95%  real_omp  real_omp               [.] vranlc
+  17.01%  real_omp  real_omp               [.] psinv
+   9.27%  real_omp  real_omp               [.] interp
+   8.64%  real_omp  real_omp               [.] rprj3
 ```
 
 

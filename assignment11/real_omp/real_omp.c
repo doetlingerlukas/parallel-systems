@@ -237,16 +237,16 @@ int main()
     }
     if (timeron) timer_start(T_mg3P);
 
-    #pragma omp task
+    //#pragma omp task
     mg3P(u, v, r, a, c, n1, n2, n3);
 
     if (timeron) timer_stop(T_mg3P);
     if (timeron) timer_start(T_resid2);
 
-    #pragma omp task
+    //#pragma omp task
     resid(u, v, r, n1, n2, n3, a, k);
 
-    #pragma omp taskgroup
+    //#pragma omp taskgroup
     
     if (timeron) timer_stop(T_resid2);
   }
