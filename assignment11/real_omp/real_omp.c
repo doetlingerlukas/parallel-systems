@@ -928,11 +928,10 @@ static void comm3(void *ou, int n1, int n2, int n3, int kk)
 static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
 {
   double (*z)[n2][n1] = (double (*)[n2][n1])oz;
-
   int i0, mm0, mm1;
 
-  int i1, i2, i3, d1, e1, e2, e3;
-  double xx, x0, x1, a1, a2, ai;
+  int d1, e1, e2, e3;
+  double x0, a1, a2, ai;
 
   const int mm = 10;
   const double a = pow(5.0, 13.0);
@@ -962,7 +961,7 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   //---------------------------------------------------------------------
   // save the starting seeds for the following loop
   //---------------------------------------------------------------------
-  for (i3 = 1; i3 < e3; i3++) {
+  for (int i3 = 1; i3 < e3; i3++) {
     starts[i3] = x0;
     rdummy = randlc(&x0, a2);
   }
@@ -970,19 +969,20 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   //---------------------------------------------------------------------
   // fill array
   //---------------------------------------------------------------------
-  for (i3 = 1; i3 < e3; i3++) {
-    x1 = starts[i3];
-    for (i2 = 1; i2 < e2; i2++) {
-      xx = x1;
+  #pragma omp parallel for
+  for (int i3 = 1; i3 < e3; i3++) {
+    double x1 = starts[i3];
+    for (int i2 = 1; i2 < e2; i2++) {
+      double xx = x1;
       vranlc(d1, &xx, a, &(z[i3][i2][1]));
       rdummy = randlc(&x1, a1);
     }
   }
-
   //---------------------------------------------------------------------
   // comm3(z,n1,n2,n3);
   // showall(z,n1,n2,n3);
   //---------------------------------------------------------------------
+
 
   for (i = 0; i < mm; i++) {
     ten[i][1] = 0.0;
@@ -994,11 +994,11 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
     j2[i][0] = 0;
     j3[i][0] = 0;
   }
-
-  for (i3 = 1; i3 < n3-1; i3++) {
+  #pragma omp parallel for
+  for (int i3 = 1; i3 < n3-1; i3++) {
     double (*zi3)[n1] = z[i3];
-    for (i2 = 1; i2 < n2-1; i2++) {
-      for (i1 = 1; i1 < n1-1; i1++) {
+    for (int i2 = 1; i2 < n2-1; i2++) {
+      for (int i1 = 1; i1 < n1-1; i1++) {
         if (zi3[i2][i1] > ten[0][1]) {
           ten[0][1] = zi3[i2][i1];
           j1[0][1] = i1;
@@ -1017,16 +1017,16 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
     }
   }
 
-  i1 = mm - 1;
+  int i1 = mm - 1;
   i0 = mm - 1;
   myid = 0;
   num_threads = 1;
-  for (i = mm - 1; i >= 0; i--) {
+
+  for (int i = mm - 1; i >= 0; i--) {
 
     best1 = 0.0;
     best0 = 1.0;
-
-    for (i2 = 1; i2 <= num_threads; i2++) {
+    for (int i2 = 1; i2 <= num_threads; i2++) {
       if (ten[i1][1] > best1) {
         best1 = ten[i1][1];
         jg[0][i][1] = myid;
@@ -1057,66 +1057,24 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   mm1 = 0;
   mm0 = 0;
 
-  /*
-  int cnt = 0;
-  printf("  \n");
-  printf("  negative charges at\n");
-  for (i = 0; i < mm; i++) {
-    printf(" (%3d,%3d,%3d)", jg[1][i][0], jg[2][i][0], jg[3][i][0]);
-    if (++cnt % 5 == 0) printf("\n");
-  }
-
-  cnt = 0;
-  printf("  positive charges at\n");
-  for (i = 0; i < mm; i++) {
-    printf(" (%3d,%3d,%3d)", jg[1][i][1], jg[2][i][1], jg[3][i][1]);
-    if (++cnt % 5 == 0) printf("\n");
-  }
-
-  cnt = 0;
-  printf("  small random numbers were\n");
-  for (i = mm-1; i >= 0; i--) {
-    printf(" %15.8E", ten[i][0]);
-    if (++cnt % 5 == 0) printf("\n");
-  }
-
-  cnt = 0;
-  printf("  and they were found on processor number\n");
-  for (i = mm-1; i >= 0; i--) {
-    printf(" %4d", jg[0][i][0]);
-    if (++cnt % 10 == 0) printf("\n");
-  }
-
-  cnt = 0;
-  printf("  large random numbers were\n");
-  for (i = mm-1; i >= 0; i--) {
-    printf(" %15.8E", ten[i][1]);
-    if (++cnt % 5 == 0) printf("\n");
-  }
-
-  cnt = 0;
-  printf("  and they were found on processor number\n");
-  for (i = mm-1; i >= 0; i--) {
-    printf(" %4d", jg[0][i][1]);
-    if (++cnt % 10 == 0) printf("\n");
-  }
-  */
-
-  for (i3 = 0; i3 < n3; i3++) {
-    for (i2 = 0; i2 < n2; i2++) {
-      for (i1 = 0; i1 < n1; i1++) {
+  #pragma omp parallel for
+  for (int i3 = 0; i3 < n3; i3++) {
+    for (int i2 = 0; i2 < n2; i2++) {
+      for (int i1 = 0; i1 < n1; i1++) {
         z[i3][i2][i1] = 0.0;
       }
     }
   }
+
   for (i = mm-1; i >= mm0; i--) {
     z[jg[3][i][0]][jg[2][i][0]][jg[1][i][0]] = -1.0;
   }
+
   for (i = mm-1; i >= mm1; i--) {
     z[jg[3][i][1]][jg[2][i][1]][jg[1][i][1]] = +1.0;
   }
+  
   comm3(z, n1, n2, n3, k);
-
   //---------------------------------------------------------------------
   // showall(z,n1,n2,n3);
   //---------------------------------------------------------------------

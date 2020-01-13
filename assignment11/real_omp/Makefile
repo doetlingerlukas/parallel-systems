@@ -1,5 +1,5 @@
 CC=gcc
-CC_FLAGS=-O3 -g3 -lm
+CC_FLAGS=-O3 -g3 -lm -std=c99
 OMP_FLAGS = -fopenmp
 
 .PHONEY: all
