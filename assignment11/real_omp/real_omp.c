@@ -509,7 +509,7 @@ static void psinv(void *or, void *ou, int n1, int n2, int n3,
 
 
 //---------------------------------------------------------------------
-// resid computes the residual:  r = v - Au
+// computes the residual:  r = v - Au
 //
 // This  implementation costs  15A + 4M per result, where
 // A and M denote the costs of Addition (or Subtraction) and
@@ -527,18 +527,23 @@ static void resid(void *ou, void *ov, void *or, int n1, int n2, int n3,
   double (*v)[n2][n1] = (double (*)[n2][n1])ov;
   double (*r)[n2][n1] = (double (*)[n2][n1])or;
 
+  #pragma omp parallel
+  {
   int i3, i2, i1;
   double u1[M], u2[M];
 
   if (timeron) timer_start(T_resid);
+  #pragma omp for
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
+      
       for (i1 = 0; i1 < n1; i1++) {
         u1[i1] = u[i3][i2-1][i1] + u[i3][i2+1][i1]
                + u[i3-1][i2][i1] + u[i3+1][i2][i1];
         u2[i1] = u[i3-1][i2-1][i1] + u[i3-1][i2+1][i1]
                + u[i3+1][i2-1][i1] + u[i3+1][i2+1][i1];
       }
+      
       for (i1 = 1; i1 < n1-1; i1++) {
         r[i3][i2][i1] = v[i3][i2][i1]
                       - a[0] * u[i3][i2][i1]
@@ -551,10 +556,11 @@ static void resid(void *ou, void *ov, void *or, int n1, int n2, int n3,
                       - a[2] * ( u2[i1] + u1[i1-1] + u1[i1+1] )
                       - a[3] * ( u2[i1-1] + u2[i1+1] );
       }
+      
     }
   }
   if (timeron) timer_stop(T_resid);
-
+  }
   //---------------------------------------------------------------------
   // exchange boundary data
   //---------------------------------------------------------------------

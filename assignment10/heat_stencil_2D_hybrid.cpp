@@ -16,6 +16,19 @@ const int TO_MAIN = 2;
 
 void printTemperature(vector<vector<double>> m, int N);
 
+/*
+TODO 
+
+  try to initialize data (set to 273) in a loop and parallelize with omp for
+  because of first-touch principle  in numa (data is allocated at first write at current core)
+  allocated data is near threat that computes on data if parallelized with omp for
+  works with malloc
+
+  loop tiling
+
+  vectorization with simd or gcc flags
+*/
+
 int main(int argc, char **argv) {
 
   bool verbose = false;
