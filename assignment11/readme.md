@@ -118,15 +118,6 @@ Overhead  Command   Shared Object          Symbol
 
 * https://euccas.github.io/blog/20170827/cpu-profiling-tools-on-linux.html
 
-### Findings
-
-- ```-ftree-vectorize``` slows it slightly down
-- ```parallel for``` slows down & verification fails
-    - many data dependencies in calculcation result in verification fails when parallizing
-- using ```omp tasks``` little speed up 
-- ```#pragma omp simd ``` little speed up (careful of loop-carried dependencies)
-
-
 
 ### Description
 
