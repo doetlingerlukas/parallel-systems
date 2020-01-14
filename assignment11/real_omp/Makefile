@@ -1,5 +1,5 @@
 CC=gcc
-CC_FLAGS=-O3 -g3 -lm -std=c99
+CC_FLAGS=-O2 -lm -std=c99 -march=native -mtune=native -ftree-vectorize -ftree-vectorizer-verbose=1
 OMP_FLAGS = -fopenmp
 
 .PHONEY: all

@@ -237,16 +237,12 @@ int main()
     }
     if (timeron) timer_start(T_mg3P);
 
-    //#pragma omp task
     mg3P(u, v, r, a, c, n1, n2, n3);
 
     if (timeron) timer_stop(T_mg3P);
     if (timeron) timer_start(T_resid2);
 
-    //#pragma omp task
     resid(u, v, r, n1, n2, n3, a, k);
-
-    //#pragma omp taskgroup
     
     if (timeron) timer_stop(T_resid2);
   }
@@ -474,7 +470,7 @@ static void psinv(void *or, void *ou, int n1, int n2, int n3,
   #pragma omp for collapse(2)
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
-      for (i1 = 0; i1 < n1; i1++) {
+      for (i1 = 0; i1 < n1; i1++) { // this loop gets vectorized
         r1[i1] = r[i3][i2-1][i1] + r[i3][i2+1][i1]
                + r[i3-1][i2][i1] + r[i3+1][i2][i1];
         r2[i1] = r[i3-1][i2-1][i1] + r[i3-1][i2+1][i1]
@@ -541,7 +537,7 @@ static void resid(void *ou, void *ov, void *or, int n1, int n2, int n3,
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
       
-      for (i1 = 0; i1 < n1; i1++) {
+      for (i1 = 0; i1 < n1; i1++) { // this loop gets vectorized
         u1[i1] = u[i3][i2-1][i1] + u[i3][i2+1][i1]
                + u[i3-1][i2][i1] + u[i3+1][i2][i1];
         u2[i1] = u[i3-1][i2-1][i1] + u[i3-1][i2+1][i1]
@@ -595,6 +591,8 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
   double (*r)[m2k][m1k] = (double (*)[m2k][m1k])or;
   double (*s)[m2j][m1j] = (double (*)[m2j][m1j])os;
 
+  #pragma omp parallel
+  {
   int j3, j2, j1, i3, i2, i1, d1, d2, d3, j;
 
   double x1[M], y1[M], x2, y2;
@@ -617,7 +615,7 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
   } else {
     d3 = 1;
   }
-
+  #pragma omp for
   for (j3 = 1; j3 < m3j-1; j3++) {
     i3 = 2*j3-d3;
     for (j2 = 1; j2 < m2j-1; j2++) {
@@ -657,6 +655,7 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
   if (debug_vec[4] >= k) {
     showall(s, m1j, m2j, m3j);
   }
+  }
 }
 
 
@@ -694,7 +693,7 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
       #pragma omp for collapse(2)
       for (i3 = 0; i3 < mm3-1; i3++) {
         for (i2 = 0; i2 < mm2-1; i2++) {
-          for (i1 = 0; i1 < mm1; i1++) {
+          for (i1 = 0; i1 < mm1; i1++) { // this loop gets vectorized
             z1[i1] = z[i3][i2+1][i1] + z[i3][i2][i1];
             z2[i1] = z[i3+1][i2][i1] + z[i3][i2][i1];
             z3[i1] = z[i3+1][i2+1][i1] + z[i3+1][i2][i1] + z1[i1];
@@ -961,7 +960,7 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   //---------------------------------------------------------------------
   // save the starting seeds for the following loop
   //---------------------------------------------------------------------
-  for (int i3 = 1; i3 < e3; i3++) {
+  for (int i3 = 1; i3 < e3; i3++) { // this loop gets vectorized
     starts[i3] = x0;
     rdummy = randlc(&x0, a2);
   }
