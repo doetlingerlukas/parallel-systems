@@ -127,7 +127,7 @@ Overhead  Command   Shared Object          Symbol
 
 | N | Sequential | OpenMP 1 Thread | OpenMP 2 Threads | OpenMP 4 Threads | OpenMP 8 Threads
 | -: | -: | -: | -: | -: | -: |
-| default | 17,601 | 20,068042 | 11,033795 | 8,068023 | 9,06459
+| default | 17,601 | 20.082 | 10.835 | 7.759 | 8.783
 
 ![](./measurements/Real.svg)
 ![](./measurements/Speedup.svg)
