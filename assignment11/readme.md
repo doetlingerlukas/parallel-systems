@@ -6,7 +6,16 @@ The goal of this assignment is to parallelize an unknown application using profi
 
 ## Exercise 1
 
-Use tools like **gprof**, **gperftools**, **perf** (not working with WSL :( <-- Therefore, for God's sake, you should use **Linux** ;) ), etc. to analyze the program real_omp. Based on the results, optimize the program with OpenMP.
+Use tools like **gprof**, **gperftools**, **perf** , etc. to analyze the program `real_omp`. Based on the results, optimize the program with OpenMP.
+
+We analysed `real_omp` with gprof, gperftools and perf. Basically all tools showed that the most time consuming functions in the program are `resid`, `vranlc`, `psinv` and `interp` (in that order). We tried to optimize those function by parallelizing the loops inside those functions with `#pragma omp for` and `#pragma omp simd`. The problem is definetively computation bound - this was shown with the tool `htop`. 
+
+Our program performed best on lcc2 with following compiler flags:
+```
+-O2 -lm -std=c99 -march=native -mtune=native -ftree-vectorize -ftree-vectorizer-verbose=1
+```
+
+
 
 ### gprof
 
