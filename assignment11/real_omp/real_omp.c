@@ -620,7 +620,7 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
     i3 = 2*j3-d3;
     for (j2 = 1; j2 < m2j-1; j2++) {
       i2 = 2*j2-d2;
-      #pragma omp simd
+
       for (j1 = 1; j1 < m1j; j1++) {
         i1 = 2*j1-d1;
         x1[i1] = r[i3+1][i2  ][i1] + r[i3+1][i2+2][i1]
@@ -698,28 +698,28 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
             z2[i1] = z[i3+1][i2][i1] + z[i3][i2][i1];
             z3[i1] = z[i3+1][i2+1][i1] + z[i3+1][i2][i1] + z1[i1];
           }
-          #pragma omp simd
+
           for (i1 = 0; i1 < mm1-1; i1++) {
             u[2*i3][2*i2][2*i1] = u[2*i3][2*i2][2*i1]
                                 + z[i3][i2][i1];
             u[2*i3][2*i2][2*i1+1] = u[2*i3][2*i2][2*i1+1]
                                   + 0.5 * (z[i3][i2][i1+1] + z[i3][i2][i1]);
           }
-          #pragma omp simd
+
           for (i1 = 0; i1 < mm1-1; i1++) {
             u[2*i3][2*i2+1][2*i1] = u[2*i3][2*i2+1][2*i1]
                                   + 0.5 * z1[i1];
             u[2*i3][2*i2+1][2*i1+1] = u[2*i3][2*i2+1][2*i1+1]
                                     + 0.25 * (z1[i1] + z1[i1+1]);
           }
-          #pragma omp simd
+
           for (i1 = 0; i1 < mm1-1; i1++) {
             u[2*i3+1][2*i2][2*i1] = u[2*i3+1][2*i2][2*i1]
                                     + 0.5 * z2[i1];
             u[2*i3+1][2*i2][2*i1+1] = u[2*i3+1][2*i2][2*i1+1]
                                     + 0.25 * (z2[i1] + z2[i1+1]);
           }
-          #pragma omp simd
+
           for (i1 = 0; i1 < mm1-1; i1++) {
             u[2*i3+1][2*i2+1][2*i1] = u[2*i3+1][2*i2+1][2*i1]
                                     + 0.25 * z3[i1];
@@ -755,13 +755,13 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
 
       for (i3 = d3; i3 <= mm3-1; i3++) {
         for (i2 = d2; i2 <= mm2-1; i2++) {
-          #pragma omp simd
+
           for (i1 = d1; i1 <= mm1-1; i1++) {
             u[2*i3-d3-1][2*i2-d2-1][2*i1-d1-1] =
               u[2*i3-d3-1][2*i2-d2-1][2*i1-d1-1]
               + z[i3-1][i2-1][i1-1];
           }
-          #pragma omp simd
+
           for (i1 = 1; i1 <= mm1-1; i1++) {
             u[2*i3-d3-1][2*i2-d2-1][2*i1-t1-1] =
               u[2*i3-d3-1][2*i2-d2-1][2*i1-t1-1]
@@ -769,13 +769,13 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
           }
         }
         for (i2 = 1; i2 <= mm2-1; i2++) {
-          #pragma omp simd
+
           for (i1 = d1; i1 <= mm1-1; i1++) {
             u[2*i3-d3-1][2*i2-t2-1][2*i1-d1-1] =
               u[2*i3-d3-1][2*i2-t2-1][2*i1-d1-1]
               + 0.5 * (z[i3-1][i2][i1-1] + z[i3-1][i2-1][i1-1]);
           }
-          #pragma omp simd
+
           for (i1 = 1; i1 <= mm1-1; i1++) {
             u[2*i3-d3-1][2*i2-t2-1][2*i1-t1-1] =
               u[2*i3-d3-1][2*i2-t2-1][2*i1-t1-1]
@@ -787,13 +787,13 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
 
       for (i3 = 1; i3 <= mm3-1; i3++) {
         for (i2 = d2; i2 <= mm2-1; i2++) {
-          #pragma omp simd
+
           for (i1 = d1; i1 <= mm1-1; i1++) {
             u[2*i3-t3-1][2*i2-d2-1][2*i1-d1-1] =
               u[2*i3-t3-1][2*i2-d2-1][2*i1-d1-1]
               + 0.5 * (z[i3][i2-1][i1-1] + z[i3-1][i2-1][i1-1]);
           }
-          #pragma omp simd
+
           for (i1 = 1; i1 <= mm1-1; i1++) {
             u[2*i3-t3-1][2*i2-d2-1][2*i1-t1-1] =
               u[2*i3-t3-1][2*i2-d2-1][2*i1-t1-1]
@@ -802,14 +802,14 @@ static void interp(void *oz, int mm1, int mm2, int mm3,
           }
         }
         for (i2 = 1; i2 <= mm2-1; i2++) {
-          #pragma omp simd
+
           for (i1 = d1; i1 <= mm1-1; i1++) {
             u[2*i3-t3-1][2*i2-t2-1][2*i1-d1-1] =
               u[2*i3-t3-1][2*i2-t2-1][2*i1-d1-1]
               + 0.25 * (z[i3  ][i2][i1-1] + z[i3  ][i2-1][i1-1]
                       + z[i3-1][i2][i1-1] + z[i3-1][i2-1][i1-1]);
           }
-          #pragma omp simd
+
           for (i1 = 1; i1 <= mm1-1; i1++) {
             u[2*i3-t3-1][2*i2-t2-1][2*i1-t1-1] =
               u[2*i3-t3-1][2*i2-t2-1][2*i1-t1-1]
@@ -864,7 +864,6 @@ static void norm2u3(void *or, int n1, int n2, int n3,
   double my_rnmu = 0.0;
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
-      #pragma omp simd
       for (i1 = 1; i1 < n1-1; i1++) {
         s = s + pow(r[i3][i2][i1], 2.0);
         a = fabs(r[i3][i2][i1]);
@@ -916,7 +915,6 @@ static void comm3(void *ou, int n1, int n2, int n3, int kk)
 //  }
 
 //  for (i3 = 1; i3 < n3-1; i3++) {
-    #pragma omp simd
     for (i1 = 0; i1 < n1; i1++) {
       u[i3][   0][i1] = u[i3][n2-2][i1];
       u[i3][n2-1][i1] = u[i3][   1][i1];
@@ -924,7 +922,6 @@ static void comm3(void *ou, int n1, int n2, int n3, int kk)
   }
 
   for (i2 = 0; i2 < n2; i2++) {
-    #pragma omp simd
     for (i1 = 0; i1 < n1; i1++) {
       u[   0][i2][i1] = u[n3-2][i2][i1];
       u[n3-1][i2][i1] = u[   1][i2][i1];
@@ -1012,7 +1009,6 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
   for (int i3 = 1; i3 < n3-1; i3++) {
     double (*zi3)[n1] = z[i3];
     for (int i2 = 1; i2 < n2-1; i2++) {
-      #pragma omp simd
       for (int i1 = 1; i1 < n1-1; i1++) {
         if (zi3[i2][i1] > ten[0][1]) {
           ten[0][1] = zi3[i2][i1];
