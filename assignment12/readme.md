@@ -4,24 +4,37 @@ The goal of this assignment is to implement two basic applications in the Chapel
 
 ## HowTo install Chapel
 
-* Download, unpack and build:
+* Download and unpack:
 ```
 wget https://github.com/chapel-lang/chapel/releases/download/1.20.0/chapel-1.20.0.tar.gz
 tar xzf chapel-1.20.0.tar.gz
 cd chapel-1.20.0
 source util/quickstart/setchplenv.bash
-make
-make check
 ```
+
 * Set Chapel `HOME_PATH` and `PATH` (to avoid reseting those options after every bash restart, copy those lines into your .bashrc):
 ```
 export CHPL_HOME=/path/to/chapel-1.20.0
 CHPL_BIN_SUBDIR=`"$CHPL_HOME"/util/chplenv/chpl_bin_subdir.py`
 export PATH="$PATH":"$CHPL_HOME/bin/$CHPL_BIN_SUBDIR"
 ```
+
+* Build Chapel:
+```
+make
+make check
+```
+
+
 * To check installation, run
 ```
 chpl -h
+```
+
+## HowTo set number of threads
+
+```
+export CHPL_RT_NUM_THREADS_PER_LOCALE=4
 ```
 
 
