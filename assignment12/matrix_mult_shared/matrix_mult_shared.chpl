@@ -20,8 +20,8 @@ var MR : [1..N, 1..N] real;
 t.start();
 
 forall i in 1..N do {
-  forall j in 1..N do {
-    forall k in 1..N do {
+  for j in 1..N do {
+    for k in 1..N do {
       MB[i,j] += MA[i,k] * MR[k,j];
     }
   }
