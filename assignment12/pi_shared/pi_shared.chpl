@@ -3,7 +3,7 @@ use Time;
 
 const startTime = getCurrentTime();
 
-config const n = 100000000;// number of random points to try
+config const n = 10**9;// number of random points to try
 config const seed = 41; // seed for random number generator
 
 writeln("This program is running on ", numLocales, " locales");
