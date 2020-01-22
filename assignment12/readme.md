@@ -31,12 +31,23 @@ make check
 chpl -h
 ```
 
-## HowTo set number of threads
+## How-To set number of threads / locales
 
+Set number of threads:
 ```
 export CHPL_RT_NUM_THREADS_PER_LOCALE=4
 ```
 
+Set locales (after settting `CHPL_COMM=gasnet`):
+```
+./chapel_program -nl <number_of_locales>
+```
+
+## How-To compile
+
+```
+chpl -o ex program.chpl --fast
+```
 
 ## Exercise 1
 
